@@ -1,4 +1,4 @@
-package com.chatchain.chatchain.model;
+package com.chatchain.model;
 
 import org.springframework.stereotype.Component;
 
