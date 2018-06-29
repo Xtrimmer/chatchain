@@ -1,6 +1,6 @@
-package com.chatchain.chatchain.service;
+package com.chatchain.service;
 
-import com.chatchain.chatchain.model.Story;
+import com.chatchain.model.Story;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
