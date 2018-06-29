@@ -1,7 +1,7 @@
-package com.chatchain.chatchain.controller;
+package com.chatchain.controller;
 
-import com.chatchain.chatchain.model.Story;
-import com.chatchain.chatchain.model.WordForm;
+import com.chatchain.model.Story;
+import com.chatchain.model.WordForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
