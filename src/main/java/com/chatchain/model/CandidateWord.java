@@ -1,4 +1,4 @@
-package com.chatchain.chatchain.model;
+package com.chatchain.model;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -65,7 +65,6 @@ public class CandidateWord implements Comparable<CandidateWord>
     @Override
     public int compareTo(CandidateWord o)
     {
-
         return CANDIDATE_WORD_COMPARATOR.compare(this, o);
     }
 }
