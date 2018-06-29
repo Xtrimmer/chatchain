@@ -1,4 +1,4 @@
-package com.chatchain.chatchain;
+package com.chatchain;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
