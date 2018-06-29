@@ -1,2 +1,2 @@
 # chatchain
-A crown sourced storytelling app.
+A crowd sourced storytelling app.
