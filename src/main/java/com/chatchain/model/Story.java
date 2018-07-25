@@ -95,15 +95,6 @@ public class Story
         return new TreeSet<>(candidates);
     }
 
-    public void vote(int word, int weight)
-    {
-        Optional<CandidateWord> candidateWord = candidates.stream()
-                .filter(c -> (Integer.toString(c.getWord().hashCode())).equals(word))
-                .findFirst();
-        candidateWord.ifPresent(c -> c.setWeight(c.getWeight() + weight));
-        template.convertAndSend("/topic/story", this);
-    }
-
     public void vote(String word, int weight)
     {
         Optional<CandidateWord> candidateWord = candidates.stream()
