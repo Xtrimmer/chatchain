@@ -1,8 +1,8 @@
 package com.chatchain.model;
 
 import com.chatchain.service.EventCoordinationService;
+import com.chatchain.service.WebSocketPublisherService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -18,19 +18,26 @@ import static java.util.Objects.nonNull;
 public class Story
 {
     private final EventCoordinationService eventCoordinationService;
-    private final SimpMessagingTemplate template;
+    private final WebSocketPublisherService webSocketPublisherService;
+    private final UUID id;
     private List<String> words = new ArrayList<>();
     private Set<CandidateWord> candidates = new HashSet<>();
     private int period = 10;
     private Instant updateTime;
 
     @Autowired
-    public Story(EventCoordinationService eventCoordinationService, SimpMessagingTemplate template)
+    public Story(EventCoordinationService eventCoordinationService, WebSocketPublisherService webSocketPublisherService)
     {
         updateTime = now().plus(period, MINUTES);
         eventCoordinationService.scheduleUpdate(this);
         this.eventCoordinationService = eventCoordinationService;
-        this.template = template;
+        this.webSocketPublisherService = webSocketPublisherService;
+        this.id = UUID.randomUUID();
+    }
+
+    public UUID getId()
+    {
+        return id;
     }
 
     public List<String> getWords()
@@ -57,7 +64,7 @@ public class Story
             candidates.clear();
         }
         updateTime = updateTime.plus(period, MINUTES);
-        template.convertAndSend("/topic/story", this);
+        webSocketPublisherService.publish(this);
     }
 
     @Override
@@ -78,7 +85,7 @@ public class Story
         {
             candidates.add(new CandidateWord(word));
         }
-        template.convertAndSend("/topic/story", this);
+        webSocketPublisherService.publish(this);
     }
 
     public void clear()
@@ -87,7 +94,7 @@ public class Story
         candidates.clear();
         updateTime = now().plus(period, MINUTES);
         eventCoordinationService.scheduleUpdate(this);
-        template.convertAndSend("/topic/story", this);
+        webSocketPublisherService.publish(this);
     }
 
     public Set<CandidateWord> getCandidates()
@@ -101,6 +108,6 @@ public class Story
                 .filter(c -> c.getWord().equals(word))
                 .findFirst();
         candidateWord.ifPresent(c -> c.setWeight(c.getWeight() + weight));
-        template.convertAndSend("/topic/story", this);
+        webSocketPublisherService.publish(this);
     }
 }
