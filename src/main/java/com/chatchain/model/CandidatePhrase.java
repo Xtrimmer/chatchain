@@ -5,28 +5,28 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Comparator;
 
-public class CandidateWord implements Comparable<CandidateWord>
+public class CandidatePhrase implements Comparable<CandidatePhrase>
 {
-    public static final Comparator<CandidateWord> CANDIDATE_WORD_COMPARATOR = Comparator.comparing(CandidateWord::getWeight).reversed().thenComparing(CandidateWord::getCreated);
-    private final String word;
+    public static final Comparator<CandidatePhrase> CANDIDATE_PHRASE_COMPARATOR = Comparator.comparing(CandidatePhrase::getWeight).reversed().thenComparing(CandidatePhrase::getCreated);
+    private final String phrase;
     private final long created;
     private int weight;
 
-    public CandidateWord(String word, int weight)
+    public CandidatePhrase(String phrase, int weight)
     {
         this.created = System.currentTimeMillis();
-        this.word = word;
+        this.phrase = phrase;
         this.weight = weight;
     }
 
-    public CandidateWord(String word)
+    public CandidatePhrase(String phrase)
     {
-        this(word, 1);
+        this(phrase, 1);
     }
 
-    public String getWord()
+    public String getPhrase()
     {
-        return word;
+        return phrase;
     }
 
     public long getCreated()
@@ -47,7 +47,7 @@ public class CandidateWord implements Comparable<CandidateWord>
     @Override
     public int hashCode()
     {
-        return word.hashCode();
+        return phrase.hashCode();
     }
 
     @Override
@@ -63,8 +63,8 @@ public class CandidateWord implements Comparable<CandidateWord>
     }
 
     @Override
-    public int compareTo(CandidateWord o)
+    public int compareTo(CandidatePhrase o)
     {
-        return CANDIDATE_WORD_COMPARATOR.compare(this, o);
+        return CANDIDATE_PHRASE_COMPARATOR.compare(this, o);
     }
 }

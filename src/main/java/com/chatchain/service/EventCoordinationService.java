@@ -22,13 +22,14 @@ public class EventCoordinationService
         this.scheduledTasks = new HashMap<>();
     }
 
-    public void scheduleUpdate(Story story)
+    public void scheduleUpdate(Story story, Runnable runnable)
     {
         cancelUpdate(story);
-        scheduledTasks.put(story, scheduledExecutorService.scheduleAtFixedRate(story::update, story.getPeriod(), story.getPeriod(), TimeUnit.MINUTES));
+        ScheduledFuture<?> scheduledFuture = scheduledExecutorService.scheduleAtFixedRate(runnable, story.getPeriod(), story.getPeriod(), TimeUnit.of(story.getChronoUnit()));
+        scheduledTasks.put(story, scheduledFuture);
     }
 
-    public void cancelUpdate(Story story)
+    private void cancelUpdate(Story story)
     {
         if (scheduledTasks.containsKey(story))
         {

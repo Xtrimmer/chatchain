@@ -1,13 +1,10 @@
 package com.chatchain.model;
 
-import com.chatchain.service.EventCoordinationService;
-import com.chatchain.service.WebSocketPublisherService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
@@ -17,22 +14,22 @@ import static java.util.Objects.nonNull;
 @Component
 public class Story
 {
-    private final EventCoordinationService eventCoordinationService;
-    private final WebSocketPublisherService webSocketPublisherService;
-    private final UUID id;
-    private List<String> words = new ArrayList<>();
-    private Set<CandidateWord> candidates = new HashSet<>();
+    private final ChronoUnit chronoUnit = MINUTES;
+    private UUID id;
+    private List<String> phrases = new ArrayList<>();
     private int period = 10;
+    private Set<CandidatePhrase> candidates = new HashSet<>();
     private Instant updateTime;
 
-    @Autowired
-    public Story(EventCoordinationService eventCoordinationService, WebSocketPublisherService webSocketPublisherService)
+    public Story()
     {
-        updateTime = now().plus(period, MINUTES);
-        eventCoordinationService.scheduleUpdate(this);
-        this.eventCoordinationService = eventCoordinationService;
-        this.webSocketPublisherService = webSocketPublisherService;
+        updateTime = now().plus(period, chronoUnit);
         this.id = UUID.randomUUID();
+    }
+
+    public ChronoUnit getChronoUnit()
+    {
+        return chronoUnit;
     }
 
     public UUID getId()
@@ -40,9 +37,19 @@ public class Story
         return id;
     }
 
-    public List<String> getWords()
+    public void setId(UUID id)
     {
-        return words;
+        this.id = id;
+    }
+
+    public List<String> getPhrases()
+    {
+        return phrases;
+    }
+
+    public void setPhrases(List<String> phrases)
+    {
+        this.phrases = phrases;
     }
 
     public int getPeriod()
@@ -57,21 +64,19 @@ public class Story
 
     public void update()
     {
-        Optional<CandidateWord> winner = candidates.stream().min(CandidateWord.CANDIDATE_WORD_COMPARATOR);
+        Optional<CandidatePhrase> winner = candidates.stream().min(CandidatePhrase.CANDIDATE_PHRASE_COMPARATOR);
         if (winner.isPresent())
         {
-            words.add(winner.get().getWord());
+            phrases.add(winner.get().getPhrase());
             candidates.clear();
         }
-        updateTime = updateTime.plus(period, MINUTES);
-        webSocketPublisherService.publish(this);
+        updateTime = updateTime.plus(period, chronoUnit);
     }
 
     @Override
     public String toString()
     {
-        String story = words.stream().collect(Collectors.joining(" "));
-        return story.length() > 0 ? story : "[Start a new story]";
+        return String.join(" ", phrases);
     }
 
     public String getUpdateTime()
@@ -79,35 +84,41 @@ public class Story
         return updateTime.toString();
     }
 
-    public void addCandidate(String word)
+    public void setUpdateTime(Instant updateTime)
     {
-        if (nonNull(word) && !word.isEmpty())
+        this.updateTime = updateTime;
+    }
+
+    public void addCandidate(String phrase)
+    {
+        if (nonNull(phrase) && !phrase.isEmpty())
         {
-            candidates.add(new CandidateWord(word));
+            candidates.add(new CandidatePhrase(phrase));
         }
-        webSocketPublisherService.publish(this);
     }
 
     public void clear()
     {
-        words.clear();
+        phrases.clear();
         candidates.clear();
-        updateTime = now().plus(period, MINUTES);
-        eventCoordinationService.scheduleUpdate(this);
-        webSocketPublisherService.publish(this);
+        updateTime = now().plus(period, chronoUnit);
     }
 
-    public Set<CandidateWord> getCandidates()
+    public Set<CandidatePhrase> getCandidates()
     {
         return new TreeSet<>(candidates);
     }
 
-    public void vote(String word, int weight)
+    public void setCandidates(Set<CandidatePhrase> candidates)
     {
-        Optional<CandidateWord> candidateWord = candidates.stream()
-                .filter(c -> c.getWord().equals(word))
+        this.candidates = candidates;
+    }
+
+    public void vote(String phrase, int weight)
+    {
+        Optional<CandidatePhrase> candidateWord = candidates.stream()
+                .filter(c -> c.getPhrase().equals(phrase))
                 .findFirst();
         candidateWord.ifPresent(c -> c.setWeight(c.getWeight() + weight));
-        webSocketPublisherService.publish(this);
     }
 }
