@@ -1,8 +1,8 @@
-package com.chatchain.controller;
+package com.chatchain.controllers;
 
-import com.chatchain.model.Story;
-import com.chatchain.model.Vote;
-import com.chatchain.service.StoryManagementService;
+import com.chatchain.models.Story;
+import com.chatchain.models.Vote;
+import com.chatchain.services.StoryManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

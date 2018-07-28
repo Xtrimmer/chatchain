@@ -1,6 +1,6 @@
-package com.chatchain.service;
+package com.chatchain.services;
 
-import com.chatchain.model.Story;
+import com.chatchain.models.Story;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
