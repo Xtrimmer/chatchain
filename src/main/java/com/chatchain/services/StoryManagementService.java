@@ -51,7 +51,7 @@ public class StoryManagementService
     public void vote(UUID storyId, Vote vote)
     {
         Story story = storyMap.get(storyId);
-        story.vote(vote.getPhrase().trim(), vote.getWeight() * vote.getWeightPolarity());
+        story.vote(vote.getPhrase().trim(), vote.getWeight(), vote.getWeightPolarity());
         webSocketPublisherService.publish(story);
     }
 

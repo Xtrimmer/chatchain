@@ -14,11 +14,12 @@ import static java.util.Objects.nonNull;
 @Component
 public class Story
 {
-    private final ChronoUnit chronoUnit = MINUTES;
     private UUID id;
     private List<String> phrases = new ArrayList<>();
-    private int period = 10;
     private Set<CandidatePhrase> candidates = new HashSet<>();
+    private long totalValue;
+    private int period = 10;
+    private ChronoUnit chronoUnit = MINUTES;
     private Instant updateTime;
 
     public Story()
@@ -27,9 +28,24 @@ public class Story
         this.id = UUID.randomUUID();
     }
 
+    public long getTotalValue()
+    {
+        return totalValue;
+    }
+
+    public void setTotalValue(long totalValue)
+    {
+        this.totalValue = totalValue;
+    }
+
     public ChronoUnit getChronoUnit()
     {
         return chronoUnit;
+    }
+
+    public void setChronoUnit(ChronoUnit chronoUnit)
+    {
+        this.chronoUnit = chronoUnit;
     }
 
     public UUID getId()
@@ -93,7 +109,9 @@ public class Story
     {
         if (nonNull(phrase) && !phrase.isEmpty())
         {
-            candidates.add(new CandidatePhrase(phrase));
+            CandidatePhrase newPhrase = new CandidatePhrase(phrase);
+            candidates.add(newPhrase);
+            totalValue += newPhrase.getCost();
         }
     }
 
@@ -114,11 +132,16 @@ public class Story
         this.candidates = candidates;
     }
 
-    public void vote(String phrase, int weight)
+    public void vote(String phrase, int weight, int polarity)
     {
         Optional<CandidatePhrase> candidateWord = candidates.stream()
                 .filter(c -> c.getPhrase().equals(phrase))
                 .findFirst();
-        candidateWord.ifPresent(c -> c.setWeight(c.getWeight() + weight));
+        candidateWord.ifPresent(c ->
+        {
+            int polarizedWeight = weight * polarity;
+            c.setWeight(c.getWeight() + polarizedWeight);
+            totalValue += weight;
+        });
     }
 }
