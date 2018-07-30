@@ -2,6 +2,7 @@ package com.chatchain.services;
 
 import com.chatchain.models.Story;
 import com.chatchain.models.Vote;
+import com.chatchain.repositories.StoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,17 +17,23 @@ public class StoryManagementService
     private final Map<UUID, Story> storyMap = new HashMap<>();
     private final WebSocketPublisherService webSocketPublisherService;
     private final EventCoordinationService eventCoordinationService;
+    private final StoryRepository storyRepository;
 
     @Autowired
     public StoryManagementService(WebSocketPublisherService webSocketPublisherService,
-                                  EventCoordinationService eventCoordinationService)
+                                  EventCoordinationService eventCoordinationService,
+                                  StoryRepository storyRepository)
     {
         this.webSocketPublisherService = webSocketPublisherService;
         this.eventCoordinationService = eventCoordinationService;
+        this.storyRepository = storyRepository;
+
+        //addStory(new Story(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06"), 1, ChronoUnit.MINUTES));
+        Story story = storyRepository.getStoryById(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06"));
+        addStory(story);
     }
 
-    @Autowired
-    public void addStory(Story story)
+    private void addStory(Story story)
     {
         storyMap.put(story.getId(), story);
         eventCoordinationService.scheduleUpdate(story, update(story));
@@ -36,7 +43,10 @@ public class StoryManagementService
     {
         return () ->
         {
-            story.update();
+            if (story.update())
+            {
+                storyRepository.putStory(story);
+            }
             webSocketPublisherService.publish(story);
         };
     }

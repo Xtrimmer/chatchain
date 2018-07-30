@@ -13,8 +13,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class EventCoordinationService
 {
-    private ScheduledExecutorService scheduledExecutorService;
-    private Map<Story, ScheduledFuture<?>> scheduledTasks;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final Map<Story, ScheduledFuture<?>> scheduledTasks;
 
     public EventCoordinationService()
     {
