@@ -1,31 +1,29 @@
 package com.chatchain.models;
 
-import org.springframework.stereotype.Component;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static java.time.Instant.now;
-import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.Objects.nonNull;
 
 
-@Component
 public class Story
 {
-    private UUID id;
+    private final UUID id;
     private List<String> phrases = new ArrayList<>();
     private Set<CandidatePhrase> candidates = new HashSet<>();
     private long totalValue;
-    private int period = 10;
-    private ChronoUnit chronoUnit = MINUTES;
+    private int period;
+    private ChronoUnit chronoUnit;
     private Instant updateTime;
 
-    public Story()
+    public Story(UUID id, int period, ChronoUnit chronoUnit)
     {
+        this.id = id;
+        this.period = period;
+        this.chronoUnit = chronoUnit;
         updateTime = now().plus(period, chronoUnit);
-        this.id = UUID.randomUUID();
     }
 
     public long getTotalValue()
@@ -53,11 +51,6 @@ public class Story
         return id;
     }
 
-    public void setId(UUID id)
-    {
-        this.id = id;
-    }
-
     public List<String> getPhrases()
     {
         return phrases;
@@ -76,17 +69,21 @@ public class Story
     public void setPeriod(int period)
     {
         this.period = period;
+        updateTime = now().plus(period, chronoUnit);
     }
 
-    public void update()
+    public boolean update()
     {
         Optional<CandidatePhrase> winner = candidates.stream().min(CandidatePhrase.CANDIDATE_PHRASE_COMPARATOR);
+        boolean hasChange = false;
         if (winner.isPresent())
         {
             phrases.add(winner.get().getPhrase());
             candidates.clear();
+            hasChange = true;
         }
         updateTime = updateTime.plus(period, chronoUnit);
+        return hasChange;
     }
 
     @Override
