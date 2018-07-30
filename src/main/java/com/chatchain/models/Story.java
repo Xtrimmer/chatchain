@@ -5,25 +5,61 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static java.time.Instant.now;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 
 public class Story
 {
+    public static final ChronoUnit DEFAULT_CHRONO_UNIT = ChronoUnit.MINUTES;
+    public static final int DEFAULT_PERIOD = 10;
+    public static final String DEFAULT_TITLE = "Title";
+    private static final String DEFAULT_CITATION = "The syndicate of Satoshi's storytellers";
+
     private final UUID id;
+    private String title;
     private List<String> phrases = new ArrayList<>();
     private Set<CandidatePhrase> candidates = new HashSet<>();
+    private String citation = DEFAULT_CITATION;
     private long totalValue;
     private int period;
     private ChronoUnit chronoUnit;
     private Instant updateTime;
 
-    public Story(UUID id, int period, ChronoUnit chronoUnit)
+    public Story(UUID id, String title, int period, ChronoUnit chronoUnit)
     {
+        Objects.requireNonNull(id);
         this.id = id;
-        this.period = period;
-        this.chronoUnit = chronoUnit;
+        setTitle(title);
+        setChronoUnit(chronoUnit);
+        setPeriod(period);
         updateTime = now().plus(period, chronoUnit);
+    }
+
+    public Story()
+    {
+        this(UUID.randomUUID(), DEFAULT_TITLE, DEFAULT_PERIOD, DEFAULT_CHRONO_UNIT);
+    }
+
+    public String getCitation()
+    {
+        return citation;
+    }
+
+    public void setCitation(String citation)
+    {
+
+        this.citation = isNull(citation) || citation.isEmpty() ? DEFAULT_CITATION : citation;
+    }
+
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle(String title)
+    {
+        this.title = isNull(title) || title.isEmpty() ? DEFAULT_TITLE : title;
     }
 
     public long getTotalValue()
@@ -43,7 +79,7 @@ public class Story
 
     public void setChronoUnit(ChronoUnit chronoUnit)
     {
-        this.chronoUnit = chronoUnit;
+        this.chronoUnit = isNull(chronoUnit) ? DEFAULT_CHRONO_UNIT : chronoUnit;
     }
 
     public UUID getId()
@@ -68,7 +104,7 @@ public class Story
 
     public void setPeriod(int period)
     {
-        this.period = period;
+        this.period = period <= 0 ? DEFAULT_PERIOD : period;
         updateTime = now().plus(period, chronoUnit);
     }
 

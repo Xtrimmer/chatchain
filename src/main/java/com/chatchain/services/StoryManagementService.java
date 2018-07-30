@@ -28,7 +28,7 @@ public class StoryManagementService
         this.eventCoordinationService = eventCoordinationService;
         this.storyRepository = storyRepository;
 
-        //addStory(new Story(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06"), 1, ChronoUnit.MINUTES));
+        //Story story = new Story(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06"), "Some Story", 90, ChronoUnit.SECONDS);
         Story story = storyRepository.getStoryById(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06"));
         addStory(story);
     }

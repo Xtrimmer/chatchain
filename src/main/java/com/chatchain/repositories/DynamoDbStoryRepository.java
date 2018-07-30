@@ -1,20 +1,22 @@
 package com.chatchain.repositories;
 
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
+import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.chatchain.models.Story;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.chatchain.models.Story.*;
 import static java.util.stream.Collectors.toList;
 
 @Repository
@@ -41,7 +43,9 @@ public class DynamoDbStoryRepository implements StoryRepository
         Map<String, AttributeValue> itemValues = Map.of(
                 "Id", new AttributeValue().withS(story.getId().toString()),
                 "TotalValue", new AttributeValue().withN(Long.toString(story.getTotalValue())),
+                "Title", new AttributeValue().withS(story.getTitle()),
                 "Phrases", new AttributeValue().withL(phrases),
+                "Citation", new AttributeValue().withS(story.getCitation()),
                 "Period", new AttributeValue().withN(Integer.toString(story.getPeriod())),
                 "ChronoUnit", new AttributeValue().withS(story.getChronoUnit().name())
         );
@@ -50,7 +54,13 @@ public class DynamoDbStoryRepository implements StoryRepository
                 .withTableName(tableName)
                 .withItem(itemValues);
 
-        dynamoDB.putItem(request);
+        try
+        {
+            dynamoDB.putItem(request);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
 
         return true;
     }
@@ -66,29 +76,38 @@ public class DynamoDbStoryRepository implements StoryRepository
                 .withTableName(tableName);
         try
         {
-            Map<String, AttributeValue> returnedItem = dynamoDB.getItem(request).getItem();
+            GetItemResult getItemResult = dynamoDB.getItem(request);
+            Map<String, AttributeValue> returnedItem = getItemResult.getItem();
 
-            if (returnedItem != null)
+            if (returnedItem != null && returnedItem.containsKey("Id"))
             {
-                Story story = new Story(
-                        UUID.fromString(returnedItem.get("Id").getS()),
-                        Integer.valueOf(returnedItem.get("Period").getN()),
-                        getChronoUnitByName(returnedItem.get("ChronoUnit").getS())
-                );
+                String title = returnedItem.containsKey("Title") ? returnedItem.get("Title").getS() : DEFAULT_TITLE;
+                int period = returnedItem.containsKey("Period") ? Integer.valueOf(returnedItem.get("Period").getN()) : DEFAULT_PERIOD;
+                ChronoUnit chronoUnit = returnedItem.containsKey("ChronoUnit") ? ChronoUnit.valueOf(returnedItem.get("ChronoUnit").getS()) : DEFAULT_CHRONO_UNIT;
+
+                Story story = new Story(id, title, period, chronoUnit);
                 story.setTotalValue(Long.valueOf(returnedItem.get("TotalValue").getN()));
-                List<String> phrases = returnedItem.get("Phrases").getL().stream()
-                        .map(AttributeValue::getS)
-                        .filter(Objects::nonNull)
-                        .collect(toList());
-                story.setPhrases(phrases);
+                if (returnedItem.containsKey("Phrases"))
+                {
+                    story.setPhrases(
+                            returnedItem.get("Phrases").getL().stream()
+                                    .map(AttributeValue::getS)
+                                    .filter(Objects::nonNull)
+                                    .collect(toList())
+                    );
+                }
+                if (returnedItem.containsKey("Citation"))
+                {
+                    story.setCitation(returnedItem.get("Citation").getS());
+                }
                 return story;
             } else
             {
                 System.out.format("No item found with the key %s!\n", id);
             }
-        } catch (AmazonServiceException e)
+        } catch (Exception e)
         {
-            System.err.println(e.getErrorMessage());
+            e.printStackTrace();
         }
         return null;
     }
