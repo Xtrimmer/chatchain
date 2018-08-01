@@ -1,15 +1,20 @@
 package com.chatchain.services;
 
+import com.chatchain.models.NewStoryRequest;
 import com.chatchain.models.Story;
 import com.chatchain.models.Vote;
 import com.chatchain.repositories.StoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
 
 @Service
 public class StoryManagementService
@@ -28,12 +33,12 @@ public class StoryManagementService
         this.eventCoordinationService = eventCoordinationService;
         this.storyRepository = storyRepository;
 
-        //Story story = new Story(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06"), "Some Story", 90, ChronoUnit.SECONDS);
-        Story story = storyRepository.getStoryById(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06"));
-        addStory(story);
+        addStory(storyRepository.getStoryById(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06")));
+        addStory(storyRepository.getStoryById(UUID.fromString("b8246f9d-7f52-4423-885c-df196cdb7d06")));
+        addStory(storyRepository.getStoryById(UUID.fromString("c8246f9d-7f52-4423-885c-df196cdb7d06")));
     }
 
-    private void addStory(Story story)
+    public void addStory(Story story)
     {
         storyMap.put(story.getId(), story);
         eventCoordinationService.scheduleUpdate(story, update(story));
@@ -73,9 +78,23 @@ public class StoryManagementService
         webSocketPublisherService.publish(story);
     }
 
-    public Story getFirstStory()
+    public Story getStoryById(UUID id)
     {
-        Optional<Map.Entry<UUID, Story>> story = storyMap.entrySet().stream().findFirst();
-        return story.map(Map.Entry::getValue).orElse(null);
+        return storyMap.get(id);
+    }
+
+    public List<Story> getAllStories()
+    {
+        return storyMap.entrySet().stream()
+                .map(Map.Entry::getValue)
+                .sorted(comparing(Story::getTotalValue).reversed())
+                .collect(Collectors.toList());
+    }
+
+    public void addStory(NewStoryRequest request)
+    {
+        Story story = new Story(UUID.randomUUID(), request.getTitle(), request.getPeriod(), ChronoUnit.MINUTES);
+        story.setCitation(request.getCitation());
+        addStory(story);
     }
 }
