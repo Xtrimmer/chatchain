@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -19,7 +20,7 @@ public class Story
     private final UUID id;
     private String title;
     private List<String> phrases = new ArrayList<>();
-    private ConcurrentSkipListSet<CandidatePhrase> candidates = new ConcurrentSkipListSet<>(CandidatePhrase.CANDIDATE_PHRASE_COMPARATOR);
+    private ConcurrentSkipListSet<CandidatePhrase> candidates = new ConcurrentSkipListSet<>();
     private String citation = DEFAULT_CITATION;
     private volatile long totalValue;
     private int period;
@@ -147,14 +148,14 @@ public class Story
 
     public void clear()
     {
-        phrases.clear();
-        candidates.clear();
+        phrases = new ArrayList<>();
+        candidates = new ConcurrentSkipListSet<>();
         updateTime = now().plus(period, chronoUnit);
     }
 
     public Set<CandidatePhrase> getCandidates()
     {
-        return new TreeSet<>(candidates);
+        return candidates;
     }
 
     public void setCandidates(Set<CandidatePhrase> candidates)
@@ -175,10 +176,5 @@ public class Story
             totalValue += weight;
             candidates.add(c);
         });
-    }
-
-    private Instant now()
-    {
-        return Instant.now();
     }
 }
