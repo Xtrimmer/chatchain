@@ -8,13 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 public class StoryManagementService
@@ -33,15 +32,20 @@ public class StoryManagementService
         this.eventCoordinationService = eventCoordinationService;
         this.storyRepository = storyRepository;
 
-        addStory(storyRepository.getStoryById(UUID.fromString("a8246f9d-7f52-4423-885c-df196cdb7d06")));
-        addStory(storyRepository.getStoryById(UUID.fromString("b8246f9d-7f52-4423-885c-df196cdb7d06")));
-        addStory(storyRepository.getStoryById(UUID.fromString("c8246f9d-7f52-4423-885c-df196cdb7d06")));
+        addStories(storyRepository.getAllStories());
     }
 
     public void addStory(Story story)
     {
         storyMap.put(story.getId(), story);
         eventCoordinationService.scheduleUpdate(story, update(story));
+    }
+
+    public void addStories(Collection<Story> stories)
+    {
+        storyMap.putAll(
+                stories.stream().collect(toMap(Story::getId, identity()))
+        );
     }
 
     private Runnable update(Story story)

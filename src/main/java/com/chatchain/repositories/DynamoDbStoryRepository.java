@@ -1,22 +1,17 @@
 package com.chatchain.repositories;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.amazonaws.services.dynamodbv2.model.*;
 import com.chatchain.models.Story;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static com.chatchain.models.Story.*;
+import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 
 @Repository
@@ -81,25 +76,7 @@ public class DynamoDbStoryRepository implements StoryRepository
 
             if (returnedItem != null && returnedItem.containsKey("Id"))
             {
-                String title = returnedItem.containsKey("Title") ? returnedItem.get("Title").getS() : DEFAULT_TITLE;
-                int period = returnedItem.containsKey("Period") ? Integer.valueOf(returnedItem.get("Period").getN()) : DEFAULT_PERIOD;
-                ChronoUnit chronoUnit = returnedItem.containsKey("ChronoUnit") ? ChronoUnit.valueOf(returnedItem.get("ChronoUnit").getS()) : DEFAULT_CHRONO_UNIT;
-
-                Story story = new Story(id, title, period, chronoUnit);
-                story.setTotalValue(Long.valueOf(returnedItem.get("TotalValue").getN()));
-                if (returnedItem.containsKey("Phrases"))
-                {
-                    story.setPhrases(
-                            returnedItem.get("Phrases").getL().stream()
-                                    .map(AttributeValue::getS)
-                                    .filter(Objects::nonNull)
-                                    .collect(toList())
-                    );
-                }
-                if (returnedItem.containsKey("Citation"))
-                {
-                    story.setCitation(returnedItem.get("Citation").getS());
-                }
+                Story story = mapStory(returnedItem);
                 return story;
             } else
             {
@@ -110,5 +87,49 @@ public class DynamoDbStoryRepository implements StoryRepository
             e.printStackTrace();
         }
         return null;
+    }
+
+    private Story mapStory(Map<String, AttributeValue> returnedItem)
+    {
+        String title = returnedItem.containsKey("Title") ? returnedItem.get("Title").getS() : DEFAULT_TITLE;
+        int period = returnedItem.containsKey("Period") ? Integer.valueOf(returnedItem.get("Period").getN()) : DEFAULT_PERIOD;
+        ChronoUnit chronoUnit = returnedItem.containsKey("ChronoUnit") ? ChronoUnit.valueOf(returnedItem.get("ChronoUnit").getS()) : DEFAULT_CHRONO_UNIT;
+        UUID id = UUID.fromString(returnedItem.get("Id").getS());
+        Story story = new Story(id, title, period, chronoUnit);
+        story.setTotalValue(Long.valueOf(returnedItem.get("TotalValue").getN()));
+        if (returnedItem.containsKey("Phrases"))
+        {
+            story.setPhrases(
+                    returnedItem.get("Phrases").getL().stream()
+                            .map(AttributeValue::getS)
+                            .filter(Objects::nonNull)
+                            .collect(toList())
+            );
+        }
+        if (returnedItem.containsKey("Citation"))
+        {
+            story.setCitation(returnedItem.get("Citation").getS());
+        }
+        return story;
+    }
+
+    @Override
+    public List<Story> getAllStories()
+    {
+        ScanRequest scanRequest = new ScanRequest()
+                .withTableName(tableName);
+
+        List<Story> stories = null;
+
+        try
+        {
+            stories = dynamoDB.scan(scanRequest).getItems().stream()
+                    .map(this::mapStory)
+                    .collect(toList());
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return isNull(stories) ? new ArrayList<>() : stories;
     }
 }
