@@ -44,7 +44,9 @@ public class StoryManagementService
     public void addStories(Collection<Story> stories)
     {
         storyMap.putAll(
-                stories.stream().collect(toMap(Story::getId, identity()))
+                stories.stream()
+                        .peek(story -> eventCoordinationService.scheduleUpdate(story, update(story)))
+                        .collect(toMap(Story::getId, identity()))
         );
     }
 
