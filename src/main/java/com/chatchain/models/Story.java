@@ -48,7 +48,6 @@ public class Story
 
     public void setCitation(String citation)
     {
-
         this.citation = isNull(citation) || citation.isEmpty() ? DEFAULT_CITATION : citation;
     }
 
@@ -104,7 +103,7 @@ public class Story
 
     public void setPeriod(int period)
     {
-        this.period = period <= 0 ? DEFAULT_PERIOD : period;
+        this.period = (period < 1 || period > 3600) ? DEFAULT_PERIOD : period;
         updateTime = now().plus(period, chronoUnit);
     }
 
