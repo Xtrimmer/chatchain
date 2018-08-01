@@ -20,7 +20,7 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
         this.created = System.currentTimeMillis();
         this.phrase = phrase;
         this.weight = weight;
-        this.cost = calculateCost();
+        this.cost = calculateCost(phrase);
     }
 
     public CandidatePhrase(String phrase)
@@ -53,7 +53,7 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
         this.weight = weight;
     }
 
-    private long calculateCost()
+    public static long calculateCost(String phrase)
     {
         List<Double> values = new ArrayList<>();
 
