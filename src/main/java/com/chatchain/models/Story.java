@@ -3,8 +3,8 @@ package com.chatchain.models;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 
-import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -14,14 +14,14 @@ public class Story
     public static final ChronoUnit DEFAULT_CHRONO_UNIT = ChronoUnit.MINUTES;
     public static final int DEFAULT_PERIOD = 10;
     public static final String DEFAULT_TITLE = "Title";
-    private static final String DEFAULT_CITATION = "The syndicate of Satoshi's storytellers";
+    public static final String DEFAULT_CITATION = "The syndicate of Satoshi's storytellers";
 
     private final UUID id;
     private String title;
     private List<String> phrases = new ArrayList<>();
-    private Set<CandidatePhrase> candidates = new HashSet<>();
+    private ConcurrentSkipListSet<CandidatePhrase> candidates = new ConcurrentSkipListSet<>(CandidatePhrase.CANDIDATE_PHRASE_COMPARATOR);
     private String citation = DEFAULT_CITATION;
-    private long totalValue;
+    private volatile long totalValue;
     private int period;
     private ChronoUnit chronoUnit;
     private Instant updateTime;
@@ -109,13 +109,11 @@ public class Story
 
     public boolean update()
     {
-        Optional<CandidatePhrase> winner = candidates.stream().min(CandidatePhrase.CANDIDATE_PHRASE_COMPARATOR);
-        boolean hasChange = false;
-        if (winner.isPresent())
+        boolean hasChange = !candidates.isEmpty();
+        if (hasChange)
         {
-            phrases.add(winner.get().getPhrase());
+            phrases.add(candidates.first().getPhrase());
             candidates.clear();
-            hasChange = true;
         }
         updateTime = updateTime.plus(period, chronoUnit);
         return hasChange;
@@ -127,9 +125,9 @@ public class Story
         return String.join(" ", phrases);
     }
 
-    public String getUpdateTime()
+    public Instant getUpdateTime()
     {
-        return updateTime.toString();
+        return updateTime;
     }
 
     public void setUpdateTime(Instant updateTime)
@@ -161,7 +159,7 @@ public class Story
 
     public void setCandidates(Set<CandidatePhrase> candidates)
     {
-        this.candidates = candidates;
+        this.candidates = new ConcurrentSkipListSet<>(candidates);
     }
 
     public void vote(String phrase, int weight, int polarity)
@@ -171,9 +169,16 @@ public class Story
                 .findFirst();
         candidateWord.ifPresent(c ->
         {
+            candidates.remove(c);
             int polarizedWeight = weight * polarity;
             c.setWeight(c.getWeight() + polarizedWeight);
             totalValue += weight;
+            candidates.add(c);
         });
+    }
+
+    private Instant now()
+    {
+        return Instant.now();
     }
 }
