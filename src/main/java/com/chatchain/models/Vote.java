@@ -1,5 +1,7 @@
 package com.chatchain.models;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class Vote
 {
     private String phrase;
@@ -34,5 +36,11 @@ public class Vote
     public void setWeight(int weight)
     {
         this.weight = weight;
+    }
+
+    @Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString(this);
     }
 }
