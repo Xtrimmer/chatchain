@@ -1,5 +1,6 @@
 package com.chatchain.controllers;
 
+import com.chatchain.models.CandidatePhrase;
 import com.chatchain.models.NewStoryRequest;
 import com.chatchain.models.Story;
 import com.chatchain.models.Vote;
@@ -36,20 +37,20 @@ public class StoryController
     }
 
     @PostMapping("/add/candidate/{id}")
-    public void addCantidate(@PathVariable UUID id, @RequestBody String phrase)
+    public CandidatePhrase addCantidate(@PathVariable UUID id, @RequestBody String phrase)
     {
-        storyManagementService.addCandidate(id, phrase);
+        return storyManagementService.addCandidate(id, phrase);
     }
 
     @PostMapping("/add/story")
-    public void addStory(@RequestBody NewStoryRequest newStoryRequest)
+    public Story addStory(@RequestBody NewStoryRequest newStoryRequest)
     {
-        storyManagementService.addStory(newStoryRequest);
+        return storyManagementService.addStory(newStoryRequest);
     }
 
     @PostMapping("/vote/{id}")
-    public void vote(@PathVariable UUID id, @RequestBody Vote vote)
+    public Story vote(@PathVariable UUID id, @RequestBody Vote vote)
     {
-        storyManagementService.vote(id, vote);
+        return storyManagementService.vote(id, vote);
     }
 }
