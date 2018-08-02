@@ -1,25 +1,40 @@
 package com.chatchain.models;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import static com.chatchain.MockObjects.MOCK_STORY;
-import static com.chatchain.models.Story.DEFAULT_CHRONO_UNIT;
-import static com.chatchain.models.Story.DEFAULT_PERIOD;
+import static com.chatchain.models.Story.*;
+import static com.chatchain.models.VoteType.DOWNVOTE;
+import static com.chatchain.models.VoteType.UPVOTE;
 import static java.time.Instant.EPOCH;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 
-class StoryTests
+public class StoryTests
 {
-    private Story testStory = MOCK_STORY;
+    private Story testStory = new Story();
+
+    @BeforeEach
+    void beforeEach()
+    {
+        testStory = new Story(
+                UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                DEFAULT_TITLE,
+                DEFAULT_PERIOD,
+                DEFAULT_CHRONO_UNIT
+        );
+    }
 
     @Test
     void getCitationTest()
@@ -37,6 +52,9 @@ class StoryTests
         assertSame(expectedCitation, testStory.getCitation());
 
         testStory.setCitation(null);
+        assertSame(Story.DEFAULT_CITATION, testStory.getCitation());
+
+        testStory.setCitation("");
         assertSame(Story.DEFAULT_CITATION, testStory.getCitation());
     }
 
@@ -56,6 +74,9 @@ class StoryTests
         assertSame(expectedTitle, testStory.getTitle());
 
         testStory.setTitle(null);
+        assertSame(Story.DEFAULT_TITLE, testStory.getTitle());
+
+        testStory.setTitle("");
         assertSame(Story.DEFAULT_TITLE, testStory.getTitle());
     }
 
@@ -154,11 +175,7 @@ class StoryTests
     @Test
     void updateTest()
     {
-        testStory.setPeriod(DEFAULT_PERIOD);
-        testStory.setChronoUnit(DEFAULT_CHRONO_UNIT);
-        testStory.setPhrases(new ArrayList<>());
-        testStory.setCandidates(new HashSet<>());
-
+        testStory.setCandidates(new ConcurrentSkipListSet<>());
         Instant expectedUpdateTime = EPOCH.plus(DEFAULT_PERIOD, DEFAULT_CHRONO_UNIT);
         testStory.setUpdateTime(EPOCH);
         testStory.update();
@@ -224,7 +241,7 @@ class StoryTests
     @Test
     void addCandidateTest()
     {
-        testStory.setCandidates(new HashSet<>());
+        testStory.setCandidates(new ConcurrentSkipListSet<>());
         testStory.setTotalValue(1000);
 
         testStory.addCandidate(null);
@@ -258,10 +275,10 @@ class StoryTests
     @Test
     void getCandidatesTest()
     {
-        ConcurrentSkipListSet<CandidatePhrase> expectedCandidates = new ConcurrentSkipListSet<>(Set.of(
+        var expectedCandidates = Set.of(
                 new CandidatePhrase("First", 1),
                 new CandidatePhrase("Second", 2)
-        ));
+        );
         testStory.setCandidates(expectedCandidates);
         assertEquals(expectedCandidates, testStory.getCandidates());
     }
@@ -269,10 +286,10 @@ class StoryTests
     @Test
     void setCandidatesTest()
     {
-        ConcurrentSkipListSet<CandidatePhrase> expectedCandidates = new ConcurrentSkipListSet<>(Set.of(
+        var expectedCandidates = Set.of(
                 new CandidatePhrase("Third", 3),
                 new CandidatePhrase("Fourth", 4)
-        ));
+        );
         testStory.setCandidates(expectedCandidates);
         assertEquals(expectedCandidates, testStory.getCandidates());
     }
@@ -280,6 +297,29 @@ class StoryTests
     @Test
     void voteTest()
     {
+        var candidate1 = new CandidatePhrase("Candidate1", 1);
+        var candidate2 = new CandidatePhrase("Candidate2", 2);
+        var candidate3 = new CandidatePhrase("Candidate3", 4);
+        var candidate4 = new CandidatePhrase("Candidate4", 8);
+        testStory.setCandidates(Set.of(candidate1, candidate2, candidate3, candidate4));
 
+        var expectedOrder = List.of("Candidate4", "Candidate3", "Candidate2", "Candidate1");
+        var actualOrder = testStory.getCandidates().stream().map(CandidatePhrase::getPhrase).collect(toList());
+        assertEquals(expectedOrder, actualOrder);
+
+        testStory.vote("Candidate-5", 10, UPVOTE);
+        assertEquals(expectedOrder, actualOrder);
+
+        testStory.vote("Candidate1", 2, UPVOTE);
+        expectedOrder = List.of("Candidate4", "Candidate3", "Candidate1", "Candidate2");
+        actualOrder = testStory.getCandidates().stream().map(CandidatePhrase::getPhrase).collect(toList());
+        assertEquals(expectedOrder, actualOrder);
+        assertEquals(3, candidate1.getWeight());
+
+        testStory.vote("Candidate4", 10, DOWNVOTE);
+        expectedOrder = List.of("Candidate3", "Candidate1", "Candidate2", "Candidate4");
+        actualOrder = testStory.getCandidates().stream().map(CandidatePhrase::getPhrase).collect(toList());
+        assertEquals(expectedOrder, actualOrder);
+        assertEquals(-2, candidate4.getWeight());
     }
 }

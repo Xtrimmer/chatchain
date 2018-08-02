@@ -153,9 +153,9 @@ public class Story
         updateTime = now().plus(period, chronoUnit);
     }
 
-    public Set<CandidatePhrase> getCandidates()
+    public TreeSet<CandidatePhrase> getCandidates()
     {
-        return candidates;
+        return new TreeSet<>(candidates);
     }
 
     public void setCandidates(Set<CandidatePhrase> candidates)
@@ -163,7 +163,7 @@ public class Story
         this.candidates = new ConcurrentSkipListSet<>(candidates);
     }
 
-    public void vote(String phrase, int weight, int polarity)
+    public void vote(String phrase, int weight, VoteType voteType)
     {
         Optional<CandidatePhrase> candidateWord = candidates.stream()
                 .filter(c -> c.getPhrase().equals(phrase))
@@ -171,7 +171,7 @@ public class Story
         candidateWord.ifPresent(c ->
         {
             candidates.remove(c);
-            int polarizedWeight = weight * polarity;
+            int polarizedWeight = weight * voteType.getValue();
             c.setWeight(c.getWeight() + polarizedWeight);
             totalValue += weight;
             candidates.add(c);
