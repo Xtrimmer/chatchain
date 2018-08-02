@@ -26,16 +26,16 @@ public class AwsConfiguration
 
     @Bean
     public AmazonDynamoDB amazonDynamoDB(AWSStaticCredentialsProvider awsCredentials,
-                                         AwsClientBuilder.EndpointConfiguration AwsDynamoDbEndpoint)
+                                         AwsClientBuilder.EndpointConfiguration awsDynamoDbEndpoint)
     {
         return AmazonDynamoDBClientBuilder.standard()
                 .withCredentials(awsCredentials)
-                .withEndpointConfiguration(AwsDynamoDbEndpoint)
+                .withEndpointConfiguration(awsDynamoDbEndpoint)
                 .build();
     }
 
     @Bean
-    public AwsClientBuilder.EndpointConfiguration AwsDynamoDbEndpoint()
+    public AwsClientBuilder.EndpointConfiguration awsDynamoDbEndpoint()
     {
         return new AwsClientBuilder.EndpointConfiguration(amazonDynamoDBEndpoint, amazonAWSRegion);
     }
