@@ -136,14 +136,16 @@ public class Story
         this.updateTime = updateTime;
     }
 
-    public void addCandidate(String phrase)
+    public CandidatePhrase addCandidate(String phrase)
     {
         if (nonNull(phrase) && !phrase.isEmpty())
         {
             CandidatePhrase newPhrase = new CandidatePhrase(phrase);
             candidates.add(newPhrase);
             totalValue += newPhrase.getCost();
+            return new CandidatePhrase(phrase);
         }
+        return null;
     }
 
     public void clear()

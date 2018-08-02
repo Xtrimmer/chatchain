@@ -244,18 +244,21 @@ public class StoryTests
         testStory.setCandidates(new ConcurrentSkipListSet<>());
         testStory.setTotalValue(1000);
 
-        testStory.addCandidate(null);
+        CandidatePhrase candidatePhrase = testStory.addCandidate(null);
         assertThat(testStory.getCandidates(), hasSize(0));
         assertEquals(1000, testStory.getTotalValue());
+        assertNull(candidatePhrase);
 
-        testStory.addCandidate("");
+        candidatePhrase = testStory.addCandidate("");
         assertThat(testStory.getCandidates(), hasSize(0));
         assertEquals(1000, testStory.getTotalValue());
+        assertNull(candidatePhrase);
 
-        String testPhrase = "Test phrase";
-        testStory.addCandidate(testPhrase);
+        String expectedPhrase = "Test phrase";
+        candidatePhrase = testStory.addCandidate(expectedPhrase);
         assertThat(testStory.getCandidates(), hasSize(1));
-        assertEquals(1000 + CandidatePhrase.calculateCost(testPhrase), testStory.getTotalValue());
+        assertEquals(1000 + CandidatePhrase.calculateCost(expectedPhrase), testStory.getTotalValue());
+        assertEquals(expectedPhrase, candidatePhrase.getPhrase());
     }
 
     @Test
