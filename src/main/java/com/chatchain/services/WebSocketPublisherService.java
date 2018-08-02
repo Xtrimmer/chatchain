@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class WebSocketPublisherService
 {
-    private static final String destinationPrefix = "/topic/story/";
+    private static final String DESTINATION_PREFIX = "/topic/story/";
     private final SimpMessagingTemplate template;
 
     @Autowired
@@ -19,7 +19,7 @@ public class WebSocketPublisherService
 
     public void publish(Story story)
     {
-        String destination = destinationPrefix + story.getId();
+        String destination = DESTINATION_PREFIX + story.getId();
         template.convertAndSend(destination, story);
     }
 }
