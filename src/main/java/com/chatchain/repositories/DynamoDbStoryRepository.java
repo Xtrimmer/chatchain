@@ -17,6 +17,13 @@ import static java.util.stream.Collectors.toList;
 @Repository
 public class DynamoDbStoryRepository implements StoryRepository
 {
+    private static final String ID = "Id";
+    private static final String TOTAL_VALUE = "TotalValue";
+    private static final String TITLE = "Title";
+    private static final String PHRASES = "Phrases";
+    private static final String CITATION = "Citation";
+    private static final String PERIOD = "Period";
+    private static final String CHRONO_UNIT = "ChronoUnit";
 
     private final AmazonDynamoDB dynamoDB;
 
@@ -36,13 +43,13 @@ public class DynamoDbStoryRepository implements StoryRepository
                 .map(AttributeValue::new)
                 .collect(toList());
         Map<String, AttributeValue> itemValues = Map.of(
-                "Id", new AttributeValue().withS(story.getId().toString()),
-                "TotalValue", new AttributeValue().withN(Long.toString(story.getTotalValue())),
-                "Title", new AttributeValue().withS(story.getTitle()),
-                "Phrases", new AttributeValue().withL(phrases),
-                "Citation", new AttributeValue().withS(story.getCitation()),
-                "Period", new AttributeValue().withN(Integer.toString(story.getPeriod())),
-                "ChronoUnit", new AttributeValue().withS(story.getChronoUnit().name())
+                ID, new AttributeValue().withS(story.getId().toString()),
+                TOTAL_VALUE, new AttributeValue().withN(Long.toString(story.getTotalValue())),
+                TITLE, new AttributeValue().withS(story.getTitle()),
+                PHRASES, new AttributeValue().withL(phrases),
+                CITATION, new AttributeValue().withS(story.getCitation()),
+                PERIOD, new AttributeValue().withN(Integer.toString(story.getPeriod())),
+                CHRONO_UNIT, new AttributeValue().withS(story.getChronoUnit().name())
         );
 
         PutItemRequest request = new PutItemRequest()
@@ -64,7 +71,7 @@ public class DynamoDbStoryRepository implements StoryRepository
     public Story getStoryById(UUID id)
     {
         Map<String, AttributeValue> key = Map.of(
-                "Id", new AttributeValue().withS(id.toString())
+                ID, new AttributeValue().withS(id.toString())
         );
         GetItemRequest request = new GetItemRequest()
                 .withKey(key)
@@ -74,13 +81,12 @@ public class DynamoDbStoryRepository implements StoryRepository
             GetItemResult getItemResult = dynamoDB.getItem(request);
             Map<String, AttributeValue> returnedItem = getItemResult.getItem();
 
-            if (returnedItem != null && returnedItem.containsKey("Id"))
+            if (returnedItem != null && returnedItem.containsKey(ID))
             {
-                Story story = mapStory(returnedItem);
-                return story;
+                return mapStory(returnedItem);
             } else
             {
-                System.out.format("No item found with the key %s!\n", id);
+                System.out.format("No item found with the key %s!%n", id);
             }
         } catch (Exception e)
         {
@@ -91,24 +97,24 @@ public class DynamoDbStoryRepository implements StoryRepository
 
     private Story mapStory(Map<String, AttributeValue> returnedItem)
     {
-        String title = returnedItem.containsKey("Title") ? returnedItem.get("Title").getS() : DEFAULT_TITLE;
-        int period = returnedItem.containsKey("Period") ? Integer.valueOf(returnedItem.get("Period").getN()) : DEFAULT_PERIOD;
-        ChronoUnit chronoUnit = returnedItem.containsKey("ChronoUnit") ? ChronoUnit.valueOf(returnedItem.get("ChronoUnit").getS()) : DEFAULT_CHRONO_UNIT;
-        UUID id = UUID.fromString(returnedItem.get("Id").getS());
+        String title = returnedItem.containsKey(TITLE) ? returnedItem.get(TITLE).getS() : DEFAULT_TITLE;
+        int period = returnedItem.containsKey(PERIOD) ? Integer.valueOf(returnedItem.get(PERIOD).getN()) : DEFAULT_PERIOD;
+        ChronoUnit chronoUnit = returnedItem.containsKey(CHRONO_UNIT) ? ChronoUnit.valueOf(returnedItem.get(CHRONO_UNIT).getS()) : DEFAULT_CHRONO_UNIT;
+        UUID id = UUID.fromString(returnedItem.get(ID).getS());
         Story story = new Story(id, title, period, chronoUnit);
-        story.setTotalValue(Long.valueOf(returnedItem.get("TotalValue").getN()));
-        if (returnedItem.containsKey("Phrases"))
+        story.setTotalValue(Long.valueOf(returnedItem.get(TOTAL_VALUE).getN()));
+        if (returnedItem.containsKey(PHRASES))
         {
             story.setPhrases(
-                    returnedItem.get("Phrases").getL().stream()
+                    returnedItem.get(PHRASES).getL().stream()
                             .map(AttributeValue::getS)
                             .filter(Objects::nonNull)
                             .collect(toList())
             );
         }
-        if (returnedItem.containsKey("Citation"))
+        if (returnedItem.containsKey(CITATION))
         {
-            story.setCitation(returnedItem.get("Citation").getS());
+            story.setCitation(returnedItem.get(CITATION).getS());
         }
         return story;
     }
