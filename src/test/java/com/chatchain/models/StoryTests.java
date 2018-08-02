@@ -1,7 +1,6 @@
 package com.chatchain.models;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -18,8 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-class StoryTest
+class StoryTests
 {
     private Story testStory = MOCK_STORY;
 
