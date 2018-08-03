@@ -4,3 +4,4 @@
 /mvnw.cmd
 /.mvn/
 /target/
+/shared-local-instance.db

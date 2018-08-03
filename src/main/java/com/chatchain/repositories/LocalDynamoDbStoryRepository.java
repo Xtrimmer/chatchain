@@ -1,10 +1,11 @@
 package com.chatchain.repositories;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
+import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.amazonaws.services.dynamodbv2.model.*;
 import com.chatchain.models.Story;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.time.temporal.ChronoUnit;
@@ -15,7 +16,7 @@ import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 
 @Repository
-public class DynamoDbStoryRepository implements StoryRepository
+public class LocalDynamoDbStoryRepository implements StoryRepository
 {
     private static final String ID = "Id";
     private static final String TOTAL_VALUE = "TotalValue";
@@ -24,16 +25,16 @@ public class DynamoDbStoryRepository implements StoryRepository
     private static final String CITATION = "Citation";
     private static final String PERIOD = "Period";
     private static final String CHRONO_UNIT = "ChronoUnit";
+    private static final String TABLE_NAME = "ChatChain.Stories";
 
-    private final AmazonDynamoDB dynamoDB;
-
-    @Value("${amazon.dynamodb.tableName}")
-    private String tableName;
+    protected final AmazonDynamoDB dynamoDB;
 
     @Autowired
-    public DynamoDbStoryRepository(AmazonDynamoDB dynamoDB)
+    public LocalDynamoDbStoryRepository(AmazonDynamoDB dynamoDB)
     {
         this.dynamoDB = dynamoDB;
+        startEmbeddedDynamoDbServer();
+        createStoryTable();
     }
 
     @Override
@@ -53,7 +54,7 @@ public class DynamoDbStoryRepository implements StoryRepository
         );
 
         PutItemRequest request = new PutItemRequest()
-                .withTableName(tableName)
+                .withTableName(TABLE_NAME)
                 .withItem(itemValues);
 
         try
@@ -75,7 +76,7 @@ public class DynamoDbStoryRepository implements StoryRepository
         );
         GetItemRequest request = new GetItemRequest()
                 .withKey(key)
-                .withTableName(tableName);
+                .withTableName(TABLE_NAME);
         try
         {
             GetItemResult getItemResult = dynamoDB.getItem(request);
@@ -123,7 +124,7 @@ public class DynamoDbStoryRepository implements StoryRepository
     public List<Story> getAllStories()
     {
         ScanRequest scanRequest = new ScanRequest()
-                .withTableName(tableName);
+                .withTableName(TABLE_NAME);
 
         List<Story> stories = null;
 
@@ -137,5 +138,48 @@ public class DynamoDbStoryRepository implements StoryRepository
             e.printStackTrace();
         }
         return isNull(stories) ? new ArrayList<>() : stories;
+    }
+
+    private void startEmbeddedDynamoDbServer()
+    {
+        try
+        {
+            System.setProperty("sqlite4java.library.path", "native-libs");
+            DynamoDBProxyServer server = ServerRunner.createServerFromCommandLineArgs(
+                    new String[]{"-sharedDb"});
+            server.start();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private void createStoryTable()
+    {
+        List<String> tables = dynamoDB.listTables().getTableNames();
+        if (!tables.contains(TABLE_NAME))
+        {
+            CreateTableRequest request = new CreateTableRequest()
+                    .withAttributeDefinitions(
+                            new AttributeDefinition("Id", ScalarAttributeType.S),
+                            new AttributeDefinition("TotalValue", ScalarAttributeType.N))
+                    .withKeySchema(
+                            new KeySchemaElement("Id", KeyType.HASH))
+                    .withGlobalSecondaryIndexes(
+                            new GlobalSecondaryIndex()
+                                    .withIndexName("ChatChain.Stories.byValue")
+                                    .withKeySchema(
+                                            new KeySchemaElement("Id", KeyType.HASH),
+                                            new KeySchemaElement("TotalValue", KeyType.RANGE))
+                                    .withProvisionedThroughput(
+                                            new ProvisionedThroughput(1L, 1L))
+                                    .withProjection(new Projection().withProjectionType(ProjectionType.ALL)))
+
+                    .withProvisionedThroughput(
+                            new ProvisionedThroughput(1L, 1L))
+                    .withTableName(TABLE_NAME);
+
+            dynamoDB.createTable(request);
+        }
     }
 }
