@@ -1,5 +1,6 @@
 package com.chatchain.services;
 
+import com.chatchain.models.CandidatePhrase;
 import com.chatchain.models.NewStoryRequest;
 import com.chatchain.models.Story;
 import com.chatchain.models.Vote;
@@ -35,13 +36,13 @@ public class StoryManagementService
         addStories(storyRepository.getAllStories());
     }
 
-    public void addStory(Story story)
+    private void addStory(Story story)
     {
         storyMap.put(story.getId(), story);
         eventCoordinationService.scheduleUpdate(story, update(story));
     }
 
-    public void addStories(Collection<Story> stories)
+    private void addStories(Collection<Story> stories)
     {
         storyMap.putAll(
                 stories.stream()
@@ -62,18 +63,20 @@ public class StoryManagementService
         };
     }
 
-    public void addCandidate(UUID storyId, String phrase)
+    public CandidatePhrase addCandidate(UUID storyId, String phrase)
     {
         Story story = storyMap.get(storyId);
-        story.addCandidate(phrase.trim());
+        CandidatePhrase candidatePhrase = story.addCandidate(phrase.trim());
         webSocketPublisherService.publish(story);
+        return candidatePhrase;
     }
 
-    public void vote(UUID storyId, Vote vote)
+    public Story vote(UUID storyId, Vote vote)
     {
         Story story = storyMap.get(storyId);
         story.vote(vote.getPhrase().trim(), vote.getWeight(), vote.getVoteType());
         webSocketPublisherService.publish(story);
+        return story;
     }
 
     public void clear(UUID storyId)
@@ -97,10 +100,11 @@ public class StoryManagementService
                 .collect(Collectors.toList());
     }
 
-    public void addStory(NewStoryRequest request)
+    public Story addStory(NewStoryRequest request)
     {
         Story story = new Story(UUID.randomUUID(), request.getTitle(), request.getPeriod(), ChronoUnit.MINUTES);
         story.setCitation(request.getCitation());
         addStory(story);
+        return story;
     }
 }
