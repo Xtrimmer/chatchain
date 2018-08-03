@@ -155,7 +155,7 @@ public class Story
         updateTime = now().plus(period, chronoUnit);
     }
 
-    public TreeSet<CandidatePhrase> getCandidates()
+    public SortedSet<CandidatePhrase> getCandidates()
     {
         return new TreeSet<>(candidates);
     }
