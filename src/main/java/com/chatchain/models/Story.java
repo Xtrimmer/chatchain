@@ -19,7 +19,7 @@ public class Story
 
     private final UUID id;
     private String title;
-    private List<String> phrases = new ArrayList<>();
+    private List<Phrase> phrases = new ArrayList<>();
     private ConcurrentSkipListSet<CandidatePhrase> candidates = new ConcurrentSkipListSet<>();
     private String citation = DEFAULT_CITATION;
     private volatile long totalValue;
@@ -87,12 +87,12 @@ public class Story
         return id;
     }
 
-    public List<String> getPhrases()
+    public List<Phrase> getPhrases()
     {
         return phrases;
     }
 
-    public void setPhrases(List<String> phrases)
+    public void setPhrases(List<Phrase> phrases)
     {
         this.phrases = phrases;
     }
@@ -113,7 +113,11 @@ public class Story
         boolean hasChange = !candidates.isEmpty();
         if (hasChange)
         {
-            phrases.add(candidates.first().getPhrase());
+            String winningPhraseText = candidates.first().getPhrase();
+            long total = getCandidates().stream().mapToLong(CandidatePhrase::getTotalVoteCount).sum();
+
+            Phrase winner = new Phrase(winningPhraseText, total);
+            phrases.add(winner);
             candidates.clear();
         }
         updateTime = updateTime.plus(period, chronoUnit);
@@ -123,7 +127,8 @@ public class Story
     @Override
     public String toString()
     {
-        return String.join(" ", phrases);
+//        return String.join(" ", phrases);
+        return "bla bla bla!";
     }
 
     public Instant getUpdateTime()
@@ -170,13 +175,18 @@ public class Story
         Optional<CandidatePhrase> candidateWord = candidates.stream()
                 .filter(c -> c.getPhrase().equals(phrase))
                 .findFirst();
+
         candidateWord.ifPresent(c ->
         {
-            candidates.remove(c);
-            int polarizedWeight = weight * voteType.getValue();
-            c.setWeight(c.getWeight() + polarizedWeight);
-            totalValue += weight;
-            candidates.add(c);
+            CandidatePhrase votedPhrase = candidateWord.get();
+            if (voteType == VoteType.UPVOTE)
+            {
+                votedPhrase.addPositiveVotes(weight);
+            }
+            else if (voteType == VoteType.DOWNVOTE)
+            {
+                votedPhrase.addNegativeVotes(weight);
+            }
         });
     }
 }
