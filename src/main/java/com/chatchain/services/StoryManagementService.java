@@ -36,8 +36,6 @@ public class StoryManagementService
         this.webSocketPublisherService = webSocketPublisherService;
         this.eventCoordinationService = eventCoordinationService;
         this.storyRepository = storyRepository;
-
-        addStories(storyRepository.getAllStories());
     }
 
     private void addStory(Story story)
@@ -46,7 +44,7 @@ public class StoryManagementService
         eventCoordinationService.scheduleUpdate(story, update(story));
     }
 
-    private void addStories(Collection<Story> stories)
+    public void addStories(Collection<Story> stories)
     {
         storyMap.putAll(
                 stories.stream()
