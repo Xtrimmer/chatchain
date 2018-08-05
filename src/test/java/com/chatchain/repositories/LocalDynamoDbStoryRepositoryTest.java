@@ -11,12 +11,16 @@ import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.chatchain.models.Story;
 import org.junit.jupiter.api.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.UUID;
 
 import static com.chatchain.models.Story.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * In order to successfully run the test, it’s mandatory to have all the SQLite4Java libraries in the folder defined
@@ -92,6 +96,15 @@ class LocalDynamoDbStoryRepositoryTest
         var expectedStories = List.of(testStory1, testStory2);
         var actualStories = dynamoDbStoryRepository.getAllStories();
         assertEquals(expectedStories, actualStories);
+    }
+
+    @Test
+    void createStoryTable()
+    {
+        dynamoDbStoryRepository.createStoryTable();
+        AmazonDynamoDB dynamoDB = (AmazonDynamoDB) ReflectionTestUtils.getField(dynamoDbStoryRepository, "dynamoDB");
+        assertNotNull(dynamoDB);
+        assertThat(dynamoDB.listTables().getTableNames(), hasSize(1));
     }
 
     private void deleteTable() throws Exception

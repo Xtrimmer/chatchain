@@ -136,6 +136,7 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
         return isNull(stories) ? new ArrayList<>() : stories;
     }
 
+    @Override
     public void createStoryTable()
     {
         List<String> tables = dynamoDB.listTables().getTableNames();
