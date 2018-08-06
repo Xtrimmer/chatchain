@@ -106,7 +106,7 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
         ChronoUnit chronoUnit = returnedItem.containsKey(CHRONO_UNIT) ? ChronoUnit.valueOf(returnedItem.get(CHRONO_UNIT).getS()) : DEFAULT_CHRONO_UNIT;
         UUID id = UUID.fromString(returnedItem.get(ID).getS());
         Story story = new Story(id, title, period, chronoUnit);
-        story.setTotalValue(Long.valueOf(returnedItem.get(TOTAL_VALUE).getN()));
+//        story.setTotalValue(Long.valueOf(returnedItem.get(TOTAL_VALUE).getN()));
         if (returnedItem.containsKey(PHRASES))
         {
             if (returnedItem.containsKey(PHRASES))

@@ -92,17 +92,17 @@ public class StoryTests
     void getTotalValueTest()
     {
         long expectedTotalValue = 0L;
-        testStory.setTotalValue(expectedTotalValue);
+//        testStory.setTotalValue(expectedTotalValue);
         assertEquals(expectedTotalValue, testStory.getTotalValue());
     }
 
-    @Test
-    void setTotalValueTest()
-    {
-        long expectedTotalValue = 1L;
-        testStory.setTotalValue(expectedTotalValue);
-        assertEquals(expectedTotalValue, testStory.getTotalValue());
-    }
+//    @Test
+//    void setTotalValueTest()
+//    {
+//        long expectedTotalValue = 1L;
+////        testStory.setTotalValue(expectedTotalValue);
+//        assertEquals(expectedTotalValue, testStory.getTotalValue());
+//    }
 
     @Test
     void getChronoUnitTest()
@@ -250,23 +250,22 @@ public class StoryTests
     void addCandidateTest()
     {
         testStory.setCandidates(new ConcurrentSkipListSet<>());
-        testStory.setTotalValue(1000);
 
-        CandidatePhrase candidatePhrase = testStory.addCandidate(null);
         assertThat(testStory.getCandidates(), hasSize(0));
-        assertEquals(1000, testStory.getTotalValue());
-        assertNull(candidatePhrase);
+        assertEquals(0, testStory.getTotalValue());
 
-        candidatePhrase = testStory.addCandidate("");
-        assertThat(testStory.getCandidates(), hasSize(0));
-        assertEquals(1000, testStory.getTotalValue());
-        assertNull(candidatePhrase);
-
-        String expectedPhrase = "Test phrase";
-        candidatePhrase = testStory.addCandidate(expectedPhrase);
+        String expectedPhrase1 = "bla bla bla";
+        CandidatePhrase candidatePhrase1 = new CandidatePhrase(expectedPhrase1, 1000);
+        testStory.addCandidate(candidatePhrase1.getPhrase());
+        testStory.vote("bla bla bla", 1000, VoteType.UPVOTE);
         assertThat(testStory.getCandidates(), hasSize(1));
-        assertEquals(1000 + CandidatePhrase.calculateCost(expectedPhrase), testStory.getTotalValue());
-        assertEquals(expectedPhrase, candidatePhrase.getPhrase());
+        assertEquals(1001, testStory.getTotalValue());
+        assertEquals(expectedPhrase1, candidatePhrase1.getPhrase());
+
+        String expectedPhrase = "Test phrase 2";
+        testStory.addCandidate(expectedPhrase);
+        assertThat(testStory.getCandidates(), hasSize(2));
+        assertEquals(1002, testStory.getTotalValue());
     }
 
     @Test

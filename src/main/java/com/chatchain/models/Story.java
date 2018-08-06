@@ -1,6 +1,10 @@
 package com.chatchain.models;
 
+import com.chatchain.services.story.weight.StoryWeightService;
+import com.chatchain.shared.DatedWeightedItem;
+
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -23,7 +27,6 @@ public class Story
     private List<Phrase> phrases = new ArrayList<>();
     private ConcurrentSkipListSet<CandidatePhrase> candidates = new ConcurrentSkipListSet<>();
     private String citation = DEFAULT_CITATION;
-    private volatile long totalValue;
     private int period;
     private ChronoUnit chronoUnit;
     private Instant updateTime;
@@ -65,13 +68,23 @@ public class Story
 
     public long getTotalValue()
     {
-        return totalValue;
+        Long phrasesValue = phrases.stream()
+                .mapToLong(phrase -> StoryWeightService
+                .getWeight(phrase.getTotalEarned(), phrase.getTimestamp()))
+                .sum();
+
+        Long candidateValue = getCandidates().stream()
+                .mapToLong(candidate -> StoryWeightService
+                .getWeight(candidate.getTotalVoteCount(), candidate.getCreated()))
+                .sum();
+
+        return phrasesValue + candidateValue;
     }
 
-    public void setTotalValue(long totalValue)
-    {
-        this.totalValue = totalValue;
-    }
+//    public void setTotalValue(long totalValue)
+//    {
+//        this.totalValue = totalValue;
+//    }
 
     public ChronoUnit getChronoUnit()
     {
@@ -163,7 +176,6 @@ public class Story
         {
             CandidatePhrase newPhrase = new CandidatePhrase(phrase);
             candidates.add(newPhrase);
-            totalValue += newPhrase.getCost();
             return new CandidatePhrase(phrase);
         }
         return null;

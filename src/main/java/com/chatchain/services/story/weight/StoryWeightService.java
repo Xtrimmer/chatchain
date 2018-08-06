@@ -3,7 +3,9 @@ package com.chatchain.services.story.weight;
 import com.chatchain.shared.DatedWeightedItem;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 
 public class StoryWeightService
@@ -19,30 +21,25 @@ public class StoryWeightService
     private static final float quaternaryWeightMultiplier = 0.2f;
     private static final float finalWeightMultiplier = 0.05f;
 
-
-    public static long getStoryWeightTotal(Collection<DatedWeightedItem> story)
+    public static long getWeight(long entryValue, Instant instant)
     {
-        long total = 0l;
-        ZonedDateTime today = ZonedDateTime.now();
+        Long ageInDays = ChronoUnit.DAYS.between(instant, Instant.now());
 
-        for (DatedWeightedItem entry : story)
-        {
-            long entryValue = entry.getValue();
-            long ageInDays = Duration.between(entry.getSubmittedDate(), today).toDays();
+        Float value;
 
-            if (isBetween(ageInDays, 0, primaryWeightDays)) {
-                total += entryValue * primaryWeightMultiplier;
-            } else if (isBetween(ageInDays, primaryWeightDays, secondaryWeightDays)) {
-                total += entryValue * secondaryWeightMultiplier;
-            } else if (isBetween(ageInDays, secondaryWeightDays, tertiaryWeightDays)) {
-                total += entryValue * tertiaryWeightMultiplier;
-            } else if (isBetween(ageInDays, tertiaryWeightDays, quaternaryWeightDays)) {
-                total += entryValue * quaternaryWeightMultiplier;
-            } else {
-                total += entryValue * finalWeightMultiplier;
-            }
+        if (isBetween(ageInDays, 0, primaryWeightDays)) {
+            value = entryValue * primaryWeightMultiplier;
+        } else if (isBetween(ageInDays, primaryWeightDays, secondaryWeightDays)) {
+            value = entryValue * secondaryWeightMultiplier;
+        } else if (isBetween(ageInDays, secondaryWeightDays, tertiaryWeightDays)) {
+            value = entryValue * tertiaryWeightMultiplier;
+        } else if (isBetween(ageInDays, tertiaryWeightDays, quaternaryWeightDays)) {
+            value = entryValue * quaternaryWeightMultiplier;
+        } else {
+            value= entryValue * finalWeightMultiplier;
         }
-        return total;
+
+        return value.longValue();
     }
 
     public static boolean isBetween(long value, long start, long end)
