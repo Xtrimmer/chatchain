@@ -25,6 +25,14 @@ public class StoryTests
 {
     private Story testStory = new Story();
 
+    private static final List<Phrase> DEFAULT_PHRASE_LIST = List.of(
+                new Phrase("This", Instant.now(), 12345l),
+                new Phrase("is", Instant.now(), 12345l),
+                new Phrase("a", Instant.now(), 12345l),
+                new Phrase("phrase", Instant.now(), 12345l),
+                new Phrase("list!", Instant.now(), 12345l)
+        );
+
     @BeforeEach
     void beforeEach()
     {
@@ -125,7 +133,7 @@ public class StoryTests
     @Test
     void getPhrasesTest()
     {
-        List<String> expectedPhrases = List.of("A", "long", "time", "ago");
+        List<Phrase> expectedPhrases = DEFAULT_PHRASE_LIST;
         testStory.setPhrases(expectedPhrases);
         assertSame(expectedPhrases, testStory.getPhrases());
     }
@@ -133,7 +141,7 @@ public class StoryTests
     @Test
     void setPhrasesTest()
     {
-        List<String> expectedPhrases = List.of("Once", "upon", "a", "time");
+        List<Phrase> expectedPhrases = DEFAULT_PHRASE_LIST;
         testStory.setPhrases(expectedPhrases);
         assertSame(expectedPhrases, testStory.getPhrases());
     }
@@ -217,8 +225,8 @@ public class StoryTests
     @Test
     void toStringTest()
     {
-        String expectedString = "Once upon a time";
-        testStory.setPhrases(List.of("Once", "upon", "a", "time"));
+        String expectedString = "This is a phrase list!";
+        testStory.setPhrases(DEFAULT_PHRASE_LIST);
         assertEquals(expectedString, testStory.toString());
     }
 
@@ -264,7 +272,7 @@ public class StoryTests
     @Test
     void clearTest()
     {
-        testStory.setPhrases(List.of("Once", "upon", "a", "time"));
+        testStory.setPhrases(DEFAULT_PHRASE_LIST);
         testStory.setCandidates(Set.of(
                 new CandidatePhrase("there"),
                 new CandidatePhrase("was"),

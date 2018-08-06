@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
 import static java.util.Objects.isNull;
@@ -131,7 +132,7 @@ public class Story
             String winningPhraseText = candidates.first().getPhrase();
             long total = getCandidates().stream().mapToLong(CandidatePhrase::getTotalVoteCount).sum();
 
-            Phrase winner = new Phrase(winningPhraseText, total);
+            Phrase winner = new Phrase(winningPhraseText, Instant.now(), total);
             phrases.add(winner);
             candidates.clear();
         }
@@ -142,8 +143,8 @@ public class Story
     @Override
     public String toString()
     {
-//        return String.join(" ", phrases);
-        return "bla bla bla!";
+        List<String> phrasesList = getPhrases().stream().map(phrase -> phrase.getPhrase()).collect(Collectors.toList());
+        return String.join(" ", phrasesList);
     }
 
     public Instant getUpdateTime()

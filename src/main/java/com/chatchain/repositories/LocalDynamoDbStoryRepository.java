@@ -4,10 +4,12 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.amazonaws.services.dynamodbv2.model.*;
+import com.chatchain.models.Phrase;
 import com.chatchain.models.Story;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -41,8 +43,13 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
     public boolean putStory(Story story)
     {
         List<AttributeValue> phrases = story.getPhrases().stream()
-                .map(AttributeValue::new)
+                .map(phrase -> new AttributeValue().withM(Map.of(
+                        "phrase", new AttributeValue().withS(phrase.getPhrase()),
+                        "timestamp", new AttributeValue().withS(phrase.getTimestamp().toString()),
+                        "totalEarned", new AttributeValue().withN(Long.toString(phrase.getTotalEarned()))
+                )))
                 .collect(toList());
+
         Map<String, AttributeValue> itemValues = Map.of(
                 ID, new AttributeValue().withS(story.getId().toString()),
                 TOTAL_VALUE, new AttributeValue().withN(Long.toString(story.getTotalValue())),
@@ -106,12 +113,20 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
         story.setTotalValue(Long.valueOf(returnedItem.get(TOTAL_VALUE).getN()));
         if (returnedItem.containsKey(PHRASES))
         {
-            story.setPhrases(
-                    returnedItem.get(PHRASES).getL().stream()
-                            .map(AttributeValue::getS)
-                            .filter(Objects::nonNull)
-                            .collect(toList())
-            );
+            if (returnedItem.containsKey(PHRASES))
+            {
+                story.setPhrases(
+                        returnedItem.get(PHRASES).getL().stream()
+                                .map(AttributeValue::getM)
+                                .filter(Objects::nonNull)
+                                .map(map -> new Phrase(
+                                        map.get("phrase").getS(),
+                                        Instant.parse(map.get("timestamp").getS()),
+                                        Long.valueOf(map.get("totalEarned").getN())
+                                ))
+                                .collect(toList())
+                );
+            }
         }
         if (returnedItem.containsKey(CITATION))
         {

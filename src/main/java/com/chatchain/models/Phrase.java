@@ -8,13 +8,6 @@ public class Phrase
     private Instant timestamp;
     private long totalEarned;
 
-    public Phrase(String phrase, long totalEarned)
-    {
-        this.phrase = phrase;
-        this.timestamp = Instant.now();
-        this.totalEarned = totalEarned;
-    }
-
     public Phrase(String phrase, Instant timestamp, long totalEarned)
     {
         this.phrase = phrase;
