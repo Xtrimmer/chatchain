@@ -37,7 +37,7 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
 
     public void addNegativeVotes(long amount)
     {
-        negativeVotes += negativeVotes;
+        negativeVotes += amount;
     }
 
     public long getTotalVoteCount()
