@@ -96,7 +96,7 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
             return false;
         }
         CandidatePhrase rhs = (CandidatePhrase) obj;
-        return EqualsBuilder.reflectionEquals(this, obj, "created", "weight");
+        return EqualsBuilder.reflectionEquals(this, rhs, "created", "weight");
     }
 
     @Override
