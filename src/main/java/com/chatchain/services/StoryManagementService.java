@@ -9,7 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -19,7 +23,7 @@ import static java.util.stream.Collectors.toMap;
 @Service
 public class StoryManagementService
 {
-    private final Map<UUID, Story> storyMap = new HashMap<>();
+    private final Map<UUID, Story> storyMap = new ConcurrentHashMap<>();
     private final WebSocketPublisherService webSocketPublisherService;
     private final EventCoordinationService eventCoordinationService;
     private final StoryRepository storyRepository;
@@ -32,8 +36,6 @@ public class StoryManagementService
         this.webSocketPublisherService = webSocketPublisherService;
         this.eventCoordinationService = eventCoordinationService;
         this.storyRepository = storyRepository;
-
-        addStories(storyRepository.getAllStories());
     }
 
     private void addStory(Story story)
@@ -42,7 +44,7 @@ public class StoryManagementService
         eventCoordinationService.scheduleUpdate(story, update(story));
     }
 
-    private void addStories(Collection<Story> stories)
+    public void addStories(Collection<Story> stories)
     {
         storyMap.putAll(
                 stories.stream()

@@ -1,8 +1,6 @@
 package com.chatchain.repositories;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
-import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.amazonaws.services.dynamodbv2.model.*;
 import com.chatchain.models.Phrase;
 import com.chatchain.models.Story;
@@ -29,14 +27,12 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
     private static final String CHRONO_UNIT = "ChronoUnit";
     private static final String TABLE_NAME = "ChatChain.Stories";
 
-    protected final AmazonDynamoDB dynamoDB;
+    private final AmazonDynamoDB dynamoDB;
 
     @Autowired
     public LocalDynamoDbStoryRepository(AmazonDynamoDB dynamoDB)
     {
         this.dynamoDB = dynamoDB;
-        startEmbeddedDynamoDbServer();
-        createStoryTable();
     }
 
     @Override
@@ -155,21 +151,8 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
         return isNull(stories) ? new ArrayList<>() : stories;
     }
 
-    private void startEmbeddedDynamoDbServer()
-    {
-        try
-        {
-            System.setProperty("sqlite4java.library.path", "native-libs");
-            DynamoDBProxyServer server = ServerRunner.createServerFromCommandLineArgs(
-                    new String[]{"-sharedDb"});
-            server.start();
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private void createStoryTable()
+    @Override
+    public void createStoryTable()
     {
         List<String> tables = dynamoDB.listTables().getTableNames();
         if (!tables.contains(TABLE_NAME))

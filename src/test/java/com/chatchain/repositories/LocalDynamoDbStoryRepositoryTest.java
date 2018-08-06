@@ -9,7 +9,6 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
-import com.amazonaws.services.dynamodbv2.model.*;
 import com.chatchain.models.Story;
 import org.junit.jupiter.api.*;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -21,6 +20,7 @@ import static com.chatchain.models.Story.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * In order to successfully run the test, it’s mandatory to have all the SQLite4Java libraries in the folder defined
@@ -43,13 +43,13 @@ class LocalDynamoDbStoryRepositoryTest
     static void setUp() throws Exception
     {
         System.setProperty("sqlite4java.library.path", "native-libs");
-        String port = "8000";
+        String port = "8001";
         server = ServerRunner.createServerFromCommandLineArgs(
                 new String[]{"-inMemory", "-port", port, "-sharedDb"});
         server.start();
         amazonDynamoDB = AmazonDynamoDBClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("Key", "Secret")))
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000/", "us-west-2"))
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8001/", "us-west-2"))
                 .build();
     }
 
@@ -63,8 +63,7 @@ class LocalDynamoDbStoryRepositoryTest
     void beforeEach()
     {
         dynamoDbStoryRepository = new LocalDynamoDbStoryRepository(amazonDynamoDB);
-        ReflectionTestUtils.setField(dynamoDbStoryRepository, "tableName", "ChatChain.Stories");
-        createStoryTable();
+        dynamoDbStoryRepository.createStoryTable();
     }
 
     @AfterEach
@@ -99,39 +98,20 @@ class LocalDynamoDbStoryRepositoryTest
         assertEquals(expectedStories, actualStories);
     }
 
+    @Test
+    void createStoryTable()
+    {
+        dynamoDbStoryRepository.createStoryTable();
+        AmazonDynamoDB dynamoDB = (AmazonDynamoDB) ReflectionTestUtils.getField(dynamoDbStoryRepository, "dynamoDB");
+        assertNotNull(dynamoDB);
+        assertThat(dynamoDB.listTables().getTableNames(), hasSize(1));
+    }
+
     private void deleteTable() throws Exception
     {
         DynamoDB dynamoDB = new DynamoDB(amazonDynamoDB);
         Table table = dynamoDB.getTable("ChatChain.Stories");
         table.delete();
         table.waitForDelete();
-    }
-
-    private void createStoryTable()
-    {
-        CreateTableRequest request = new CreateTableRequest()
-                .withAttributeDefinitions(
-                        new AttributeDefinition("Id", ScalarAttributeType.S),
-                        new AttributeDefinition("TotalValue", ScalarAttributeType.N))
-                .withKeySchema(
-                        new KeySchemaElement("Id", KeyType.HASH))
-                .withGlobalSecondaryIndexes(
-                        new GlobalSecondaryIndex()
-                                .withIndexName("ChatChain.Stories.byValue")
-                                .withKeySchema(
-                                        new KeySchemaElement("Id", KeyType.HASH),
-                                        new KeySchemaElement("TotalValue", KeyType.RANGE))
-                                .withProvisionedThroughput(
-                                        new ProvisionedThroughput(1L, 1L))
-                                .withProjection(new Projection().withProjectionType(ProjectionType.ALL)))
-
-                .withProvisionedThroughput(
-                        new ProvisionedThroughput(1L, 1L))
-                .withTableName("ChatChain.Stories");
-
-        amazonDynamoDB.createTable(request);
-
-        ListTablesResult tables = amazonDynamoDB.listTables();
-        assertThat(tables.getTableNames(), hasSize(1));
     }
 }

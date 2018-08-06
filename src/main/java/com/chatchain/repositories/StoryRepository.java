@@ -12,4 +12,6 @@ public interface StoryRepository
     Story getStoryById(UUID id);
 
     List<Story> getAllStories();
+
+    void createStoryTable();
 }

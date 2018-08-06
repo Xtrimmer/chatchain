@@ -38,6 +38,7 @@ class StoryManagementServiceTest
         when(storyRepository.getAllStories()).thenReturn(List.of(testStory1, testStory2));
         storyManagementService = new StoryManagementService(webSocketPublisherService,
                 eventCoordinationService, storyRepository);
+        storyManagementService.addStories(storyRepository.getAllStories());
     }
 
     @Test
