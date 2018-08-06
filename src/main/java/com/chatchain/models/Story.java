@@ -192,9 +192,9 @@ public class Story
                 .filter(c -> c.getPhrase().equals(phrase))
                 .findFirst();
 
-        candidateWord.ifPresent(c ->
+        candidateWord.ifPresent(votedPhrase ->
         {
-            CandidatePhrase votedPhrase = candidateWord.get();
+            candidates.remove(votedPhrase);
             if (voteType == VoteType.UPVOTE)
             {
                 votedPhrase.addPositiveVotes(weight);
@@ -203,6 +203,7 @@ public class Story
             {
                 votedPhrase.addNegativeVotes(weight);
             }
+            candidates.add(votedPhrase);
         });
     }
 }
