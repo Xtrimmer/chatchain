@@ -1,5 +1,8 @@
 package com.chatchain.models;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -138,7 +141,7 @@ public class Story
     @Override
     public String toString()
     {
-        return String.join(" ", phrases);
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
 
     public Instant getUpdateTime()
