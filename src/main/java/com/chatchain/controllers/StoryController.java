@@ -1,9 +1,7 @@
 package com.chatchain.controllers;
 
-import com.chatchain.models.CandidatePhrase;
-import com.chatchain.models.NewStoryRequest;
-import com.chatchain.models.Story;
-import com.chatchain.models.Vote;
+import com.chatchain.models.*;
+import com.chatchain.services.PaymentRequestService;
 import com.chatchain.services.StoryManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +15,14 @@ import java.util.UUID;
 public class StoryController
 {
     private final StoryManagementService storyManagementService;
+    private final PaymentRequestService paymentRequestService;
 
     @Autowired
-    public StoryController(StoryManagementService storyManagementService)
+    public StoryController(StoryManagementService storyManagementService,
+                           PaymentRequestService paymentRequestService)
     {
         this.storyManagementService = storyManagementService;
+        this.paymentRequestService = paymentRequestService;
     }
 
     @GetMapping("/story/{id}")
@@ -36,21 +37,27 @@ public class StoryController
         return storyManagementService.getAllStories();
     }
 
-    @PostMapping("/add/candidate/{id}")
-    public CandidatePhrase addCantidate(@PathVariable UUID id, @RequestBody String phrase)
+    @PostMapping("/add/candidate/")
+    public InvoiceUrl addCandidate(@RequestBody AddCandidateRequest addCandidateRequest)
     {
-        return storyManagementService.addCandidate(id, phrase);
+        return paymentRequestService.addRequest(addCandidateRequest);
     }
 
     @PostMapping("/add/story")
-    public Story addStory(@RequestBody NewStoryRequest newStoryRequest)
+    public InvoiceUrl addStory(@RequestBody AddStoryRequest addStoryRequest)
     {
-        return storyManagementService.addStory(newStoryRequest);
+        return paymentRequestService.addRequest(addStoryRequest);
     }
 
-    @PostMapping("/vote/{id}")
-    public Story vote(@PathVariable UUID id, @RequestBody Vote vote)
+    @PostMapping("/vote/")
+    public InvoiceUrl vote(@RequestBody VoteRequest voteRequest)
     {
-        return storyManagementService.vote(id, vote);
+        return paymentRequestService.addRequest(voteRequest);
+    }
+
+    @PostMapping("/notification")
+    public void processStatusChange(@RequestBody Invoice invoice)
+    {
+        paymentRequestService.processStatusChange(invoice);
     }
 }

@@ -15,6 +15,11 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
     private final long cost;
     private int weight;
 
+    public CandidatePhrase(String phrase)
+    {
+        this(phrase, 1);
+    }
+
     public CandidatePhrase(String phrase, int weight)
     {
         this.created = System.currentTimeMillis();
@@ -23,9 +28,56 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
         this.cost = calculateCost(phrase);
     }
 
-    public CandidatePhrase(String phrase)
+    public static long calculateCost(String phrase)
     {
-        this(phrase, 1);
+        List<Double> values = new ArrayList<>();
+
+        values.add(0.0);
+        values.add(0.02);
+
+        for (int i = 2; i <= phrase.length(); i++)
+        {
+            values.add(values.get(i - 1) + values.get(i - 2));
+        }
+
+        return (long) Math.ceil(values.get(phrase.length()));
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return phrase.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == null)
+        {
+            return false;
+        }
+        if (obj == this)
+        {
+            return true;
+        }
+        if (obj.getClass() != getClass())
+        {
+            return false;
+        }
+        CandidatePhrase rhs = (CandidatePhrase) obj;
+        return EqualsBuilder.reflectionEquals(this, rhs, "created", "weight");
+    }
+
+    @Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString(this);
+    }
+
+    @Override
+    public int compareTo(CandidatePhrase o)
+    {
+        return CANDIDATE_PHRASE_COMPARATOR.compare(this, o);
     }
 
     public long getCost()
@@ -51,57 +103,5 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
     public void setWeight(int weight)
     {
         this.weight = weight;
-    }
-
-    public static long calculateCost(String phrase)
-    {
-        List<Double> values = new ArrayList<>();
-
-        values.add(0.0);
-        values.add(0.02);
-
-        for (int i = 2; i <= phrase.length(); i++)
-        {
-            values.add(values.get(i - 1) + values.get(i - 2));
-        }
-
-        return (long) Math.ceil(values.get(phrase.length()));
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return phrase.hashCode();
-    }
-
-    @Override
-    public String toString()
-    {
-        return ToStringBuilder.reflectionToString(this);
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (obj == null)
-        {
-            return false;
-        }
-        if (obj == this)
-        {
-            return true;
-        }
-        if (obj.getClass() != getClass())
-        {
-            return false;
-        }
-        CandidatePhrase rhs = (CandidatePhrase) obj;
-        return EqualsBuilder.reflectionEquals(this, rhs, "created", "weight");
-    }
-
-    @Override
-    public int compareTo(CandidatePhrase o)
-    {
-        return CANDIDATE_PHRASE_COMPARATOR.compare(this, o);
     }
 }
