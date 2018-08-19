@@ -193,7 +193,7 @@ public class StoryTests
         assertTrue(testStory.update());
         assertEquals(1, testStory.getPhrases().size());
         assertEquals(0, testStory.getCandidates().size());
-        assertEquals("First", testStory.toString());
+        assertEquals("First", String.join(" ", testStory.getPhrases()));
 
         candidates = new ConcurrentSkipListSet<>();
         candidates.add(new CandidatePhrase("First", 100));
@@ -202,7 +202,7 @@ public class StoryTests
         assertTrue(testStory.update());
         assertEquals(2, testStory.getPhrases().size());
         assertEquals(0, testStory.getCandidates().size());
-        assertEquals("First First", testStory.toString());
+        assertEquals("First First", String.join(" ", testStory.getPhrases()));
 
         candidates = new ConcurrentSkipListSet<>();
         candidates.add(new CandidatePhrase("First", -100));
@@ -211,15 +211,7 @@ public class StoryTests
         assertTrue(testStory.update());
         assertEquals(3, testStory.getPhrases().size());
         assertEquals(0, testStory.getCandidates().size());
-        assertEquals("First First Second", testStory.toString());
-    }
-
-    @Test
-    void toStringTest()
-    {
-        String expectedString = "Once upon a time";
-        testStory.setPhrases(List.of("Once", "upon", "a", "time"));
-        assertEquals(expectedString, testStory.toString());
+        assertEquals("First First Second", String.join(" ", testStory.getPhrases()));
     }
 
     @Test

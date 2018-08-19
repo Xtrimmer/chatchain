@@ -5,14 +5,14 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class NewStoryRequestTest
+class AddStoryRequestTest
 {
-    private NewStoryRequest testRequest;
+    private AddStoryRequest testRequest;
 
     @BeforeEach
     void setUp()
     {
-        testRequest = new NewStoryRequest();
+        testRequest = new AddStoryRequest();
     }
 
     @Test
