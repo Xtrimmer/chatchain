@@ -3,6 +3,7 @@ package com.chatchain.models;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -11,21 +12,60 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
 {
     public static final Comparator<CandidatePhrase> CANDIDATE_PHRASE_COMPARATOR = Comparator.comparing(CandidatePhrase::getWeight).reversed().thenComparing(CandidatePhrase::getCreated);
     private final String phrase;
-    private final long created;
+    private final Instant created;
     private final long cost;
-    private int weight;
-
-    public CandidatePhrase(String phrase)
-    {
-        this(phrase, 1);
-    }
+    private long positiveVotes;
+    private long negativeVotes;
 
     public CandidatePhrase(String phrase, int weight)
     {
-        this.created = System.currentTimeMillis();
+        this.created = Instant.now();
         this.phrase = phrase;
-        this.weight = weight;
         this.cost = calculateCost(phrase);
+        this.positiveVotes += weight;
+    }
+
+    public CandidatePhrase(String phrase)
+    {
+        this.created = Instant.now();
+        this.phrase = phrase;
+        this.cost = calculateCost(phrase);
+        this.positiveVotes += 1;
+    }
+
+    public void addPositiveVotes(long amount)
+    {
+        positiveVotes += amount;
+    }
+
+    public void addNegativeVotes(long amount)
+    {
+        negativeVotes += amount;
+    }
+
+    public long getTotalVoteCount()
+    {
+        return positiveVotes + negativeVotes;
+    }
+
+    public long getCost()
+    {
+        return cost;
+    }
+
+    public String getPhrase()
+    {
+        return phrase;
+    }
+
+    public Instant getCreated()
+    {
+        return created;
+    }
+
+    public long getWeight()
+    {
+        return positiveVotes - negativeVotes;
     }
 
     public static long calculateCost(String phrase)
@@ -78,30 +118,5 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
     public int compareTo(CandidatePhrase o)
     {
         return CANDIDATE_PHRASE_COMPARATOR.compare(this, o);
-    }
-
-    public long getCost()
-    {
-        return cost;
-    }
-
-    public String getPhrase()
-    {
-        return phrase;
-    }
-
-    public long getCreated()
-    {
-        return created;
-    }
-
-    public int getWeight()
-    {
-        return weight;
-    }
-
-    public void setWeight(int weight)
-    {
-        this.weight = weight;
     }
 }

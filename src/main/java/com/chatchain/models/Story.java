@@ -1,5 +1,6 @@
 package com.chatchain.models;
 
+import com.chatchain.services.story.weight.StoryWeightService;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -7,6 +8,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
 import static java.util.Objects.isNull;
@@ -22,10 +24,9 @@ public class Story
 
     private final UUID id;
     private String title;
-    private List<String> phrases = new ArrayList<>();
+    private List<Phrase> phrases = new ArrayList<>();
     private ConcurrentSkipListSet<CandidatePhrase> candidates = new ConcurrentSkipListSet<>();
     private String citation = DEFAULT_CITATION;
-    private volatile long totalValue;
     private int period;
     private ChronoUnit chronoUnit;
     private Instant updateTime;
@@ -51,6 +52,7 @@ public class Story
         return Objects.hash(id);
     }
 
+
     @Override
     public boolean equals(Object o)
     {
@@ -58,12 +60,6 @@ public class Story
         if (o == null || getClass() != o.getClass()) return false;
         Story story = (Story) o;
         return Objects.equals(id, story.id);
-    }
-
-    @Override
-    public String toString()
-    {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
 
     public String getCitation()
@@ -88,13 +84,23 @@ public class Story
 
     public long getTotalValue()
     {
-        return totalValue;
+        Long phrasesValue = phrases.stream()
+                .mapToLong(phrase -> StoryWeightService
+                .getWeight(phrase.getTotalEarned(), phrase.getTimestamp()))
+                .sum();
+
+        Long candidateValue = getCandidates().stream()
+                .mapToLong(candidate -> StoryWeightService
+                .getWeight(candidate.getTotalVoteCount(), candidate.getCreated()))
+                .sum();
+
+        return phrasesValue + candidateValue;
     }
 
-    public void setTotalValue(long totalValue)
-    {
-        this.totalValue = totalValue;
-    }
+//    public void setTotalValue(long totalValue)
+//    {
+//        this.totalValue = totalValue;
+//    }
 
     public ChronoUnit getChronoUnit()
     {
@@ -111,12 +117,12 @@ public class Story
         return id;
     }
 
-    public List<String> getPhrases()
+    public List<Phrase> getPhrases()
     {
         return phrases;
     }
 
-    public void setPhrases(List<String> phrases)
+    public void setPhrases(List<Phrase> phrases)
     {
         this.phrases = phrases;
     }
@@ -137,11 +143,22 @@ public class Story
         boolean hasChange = !candidates.isEmpty();
         if (hasChange)
         {
-            phrases.add(candidates.first().getPhrase());
+            String winningPhraseText = candidates.first().getPhrase();
+            long total = getCandidates().stream().mapToLong(CandidatePhrase::getTotalVoteCount).sum();
+
+            Phrase winner = new Phrase(winningPhraseText, Instant.now(), total);
+            phrases.add(winner);
             candidates.clear();
         }
         updateTime = updateTime.plus(period, chronoUnit);
         return hasChange;
+    }
+
+    @Override
+    public String toString()
+    {
+        List<String> phrasesList = getPhrases().stream().map(phrase -> phrase.getPhrase()).collect(Collectors.toList());
+        return String.join(" ", phrasesList);
     }
 
     public Instant getUpdateTime()
@@ -160,7 +177,6 @@ public class Story
         {
             CandidatePhrase newPhrase = new CandidatePhrase(phrase);
             candidates.add(newPhrase);
-            totalValue += newPhrase.getCost();
             return new CandidatePhrase(phrase);
         }
         return null;
@@ -188,13 +204,19 @@ public class Story
         Optional<CandidatePhrase> candidateWord = candidates.stream()
                 .filter(c -> c.getPhrase().equals(phrase))
                 .findFirst();
-        candidateWord.ifPresent(c ->
+
+        candidateWord.ifPresent(votedPhrase ->
         {
-            candidates.remove(c);
-            int polarizedWeight = weight * voteType.getValue();
-            c.setWeight(c.getWeight() + polarizedWeight);
-            totalValue += weight;
-            candidates.add(c);
+            candidates.remove(votedPhrase);
+            if (voteType == VoteType.UPVOTE)
+            {
+                votedPhrase.addPositiveVotes(weight);
+            }
+            else if (voteType == VoteType.DOWNVOTE)
+            {
+                votedPhrase.addNegativeVotes(weight);
+            }
+            candidates.add(votedPhrase);
         });
     }
 }

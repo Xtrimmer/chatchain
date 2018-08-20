@@ -1,5 +1,6 @@
 package com.chatchain.services;
 
+import com.chatchain.models.*;
 import com.chatchain.models.AddStoryRequest;
 import com.chatchain.models.CandidatePhrase;
 import com.chatchain.models.Story;
@@ -8,6 +9,7 @@ import com.chatchain.repositories.StoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -72,9 +74,17 @@ class StoryManagementServiceTest
     @Test
     void clear()
     {
+        List<Phrase> phraseList = List.of(
+                new Phrase("This", Instant.now(), 12345l),
+                new Phrase("is", Instant.now(), 12345l),
+                new Phrase("a", Instant.now(), 12345l),
+                new Phrase("phrase", Instant.now(), 12345l),
+                new Phrase("list!", Instant.now(), 12345l)
+        );
+
         Story story = storyManagementService.getStoryById(TEST_UUID_1);
         story.addCandidate(TEST_PHRASE);
-        story.setPhrases(List.of("Hello", "world"));
+        story.setPhrases(phraseList);
         storyManagementService.clear(TEST_UUID_1);
         assertTrue(story.getCandidates().isEmpty());
         assertTrue(story.getPhrases().isEmpty());
