@@ -25,6 +25,14 @@ public class StoryTests
 {
     private Story testStory = new Story();
 
+    private static final List<Phrase> DEFAULT_PHRASE_LIST = List.of(
+                new Phrase("This", Instant.now(), 12345l),
+                new Phrase("is", Instant.now(), 12345l),
+                new Phrase("a", Instant.now(), 12345l),
+                new Phrase("phrase", Instant.now(), 12345l),
+                new Phrase("list!", Instant.now(), 12345l)
+        );
+
     @BeforeEach
     void beforeEach()
     {
@@ -84,17 +92,17 @@ public class StoryTests
     void getTotalValueTest()
     {
         long expectedTotalValue = 0L;
-        testStory.setTotalValue(expectedTotalValue);
+//        testStory.setTotalValue(expectedTotalValue);
         assertEquals(expectedTotalValue, testStory.getTotalValue());
     }
 
-    @Test
-    void setTotalValueTest()
-    {
-        long expectedTotalValue = 1L;
-        testStory.setTotalValue(expectedTotalValue);
-        assertEquals(expectedTotalValue, testStory.getTotalValue());
-    }
+//    @Test
+//    void setTotalValueTest()
+//    {
+//        long expectedTotalValue = 1L;
+////        testStory.setTotalValue(expectedTotalValue);
+//        assertEquals(expectedTotalValue, testStory.getTotalValue());
+//    }
 
     @Test
     void getChronoUnitTest()
@@ -125,7 +133,7 @@ public class StoryTests
     @Test
     void getPhrasesTest()
     {
-        List<String> expectedPhrases = List.of("A", "long", "time", "ago");
+        List<Phrase> expectedPhrases = DEFAULT_PHRASE_LIST;
         testStory.setPhrases(expectedPhrases);
         assertSame(expectedPhrases, testStory.getPhrases());
     }
@@ -133,7 +141,7 @@ public class StoryTests
     @Test
     void setPhrasesTest()
     {
-        List<String> expectedPhrases = List.of("Once", "upon", "a", "time");
+        List<Phrase> expectedPhrases = DEFAULT_PHRASE_LIST;
         testStory.setPhrases(expectedPhrases);
         assertSame(expectedPhrases, testStory.getPhrases());
     }
@@ -193,7 +201,7 @@ public class StoryTests
         assertTrue(testStory.update());
         assertEquals(1, testStory.getPhrases().size());
         assertEquals(0, testStory.getCandidates().size());
-        assertEquals("First", String.join(" ", testStory.getPhrases()));
+//        assertEquals("First", String.join(" ", testStory.getPhrases()));
 
         candidates = new ConcurrentSkipListSet<>();
         candidates.add(new CandidatePhrase("First", 100));
@@ -202,7 +210,7 @@ public class StoryTests
         assertTrue(testStory.update());
         assertEquals(2, testStory.getPhrases().size());
         assertEquals(0, testStory.getCandidates().size());
-        assertEquals("First First", String.join(" ", testStory.getPhrases()));
+//        assertEquals("First First", String.join(" ", testStory.getPhrases()));
 
         candidates = new ConcurrentSkipListSet<>();
         candidates.add(new CandidatePhrase("First", -100));
@@ -211,7 +219,15 @@ public class StoryTests
         assertTrue(testStory.update());
         assertEquals(3, testStory.getPhrases().size());
         assertEquals(0, testStory.getCandidates().size());
-        assertEquals("First First Second", String.join(" ", testStory.getPhrases()));
+        assertEquals("First First Second", testStory.toString());
+    }
+
+    @Test
+    void toStringTest()
+    {
+        String expectedString = "This is a phrase list!";
+        testStory.setPhrases(DEFAULT_PHRASE_LIST);
+        assertEquals(expectedString, testStory.toString());
     }
 
     @Test
@@ -234,29 +250,28 @@ public class StoryTests
     void addCandidateTest()
     {
         testStory.setCandidates(new ConcurrentSkipListSet<>());
-        testStory.setTotalValue(1000);
 
-        CandidatePhrase candidatePhrase = testStory.addCandidate(null);
         assertThat(testStory.getCandidates(), hasSize(0));
-        assertEquals(1000, testStory.getTotalValue());
-        assertNull(candidatePhrase);
+        assertEquals(0, testStory.getTotalValue());
 
-        candidatePhrase = testStory.addCandidate("");
-        assertThat(testStory.getCandidates(), hasSize(0));
-        assertEquals(1000, testStory.getTotalValue());
-        assertNull(candidatePhrase);
-
-        String expectedPhrase = "Test phrase";
-        candidatePhrase = testStory.addCandidate(expectedPhrase);
+        String expectedPhrase1 = "bla bla bla";
+        CandidatePhrase candidatePhrase1 = new CandidatePhrase(expectedPhrase1, 1000);
+        testStory.addCandidate(candidatePhrase1.getPhrase());
+        testStory.vote("bla bla bla", 1000, VoteType.UPVOTE);
         assertThat(testStory.getCandidates(), hasSize(1));
-        assertEquals(1000 + CandidatePhrase.calculateCost(expectedPhrase), testStory.getTotalValue());
-        assertEquals(expectedPhrase, candidatePhrase.getPhrase());
+        assertEquals(1001, testStory.getTotalValue());
+        assertEquals(expectedPhrase1, candidatePhrase1.getPhrase());
+
+        String expectedPhrase = "Test phrase 2";
+        testStory.addCandidate(expectedPhrase);
+        assertThat(testStory.getCandidates(), hasSize(2));
+        assertEquals(1002, testStory.getTotalValue());
     }
 
     @Test
     void clearTest()
     {
-        testStory.setPhrases(List.of("Once", "upon", "a", "time"));
+        testStory.setPhrases(DEFAULT_PHRASE_LIST);
         testStory.setCandidates(Set.of(
                 new CandidatePhrase("there"),
                 new CandidatePhrase("was"),
