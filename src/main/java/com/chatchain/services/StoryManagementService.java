@@ -1,9 +1,9 @@
 package com.chatchain.services;
 
+import com.chatchain.models.AddStoryRequest;
 import com.chatchain.models.CandidatePhrase;
-import com.chatchain.models.NewStoryRequest;
 import com.chatchain.models.Story;
-import com.chatchain.models.Vote;
+import com.chatchain.models.VoteRequest;
 import com.chatchain.repositories.StoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,12 +38,6 @@ public class StoryManagementService
         this.storyRepository = storyRepository;
     }
 
-    private void addStory(Story story)
-    {
-        storyMap.put(story.getId(), story);
-        eventCoordinationService.scheduleUpdate(story, update(story));
-    }
-
     public void addStories(Collection<Story> stories)
     {
         storyMap.putAll(
@@ -73,10 +67,10 @@ public class StoryManagementService
         return candidatePhrase;
     }
 
-    public Story vote(UUID storyId, Vote vote)
+    public Story vote(UUID storyId, VoteRequest voteRequest)
     {
         Story story = storyMap.get(storyId);
-        story.vote(vote.getPhrase().trim(), vote.getWeight(), vote.getVoteType());
+        story.vote(voteRequest.getPhrase().trim(), voteRequest.getWeight(), voteRequest.getVoteType());
         webSocketPublisherService.publish(story);
         return story;
     }
@@ -102,11 +96,17 @@ public class StoryManagementService
                 .collect(Collectors.toList());
     }
 
-    public Story addStory(NewStoryRequest request)
+    public Story addStory(AddStoryRequest request)
     {
         Story story = new Story(UUID.randomUUID(), request.getTitle(), request.getPeriod(), ChronoUnit.MINUTES);
         story.setCitation(request.getCitation());
         addStory(story);
         return story;
+    }
+
+    private void addStory(Story story)
+    {
+        storyMap.put(story.getId(), story);
+        eventCoordinationService.scheduleUpdate(story, update(story));
     }
 }

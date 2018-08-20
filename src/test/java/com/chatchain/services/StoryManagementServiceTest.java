@@ -1,6 +1,10 @@
 package com.chatchain.services;
 
 import com.chatchain.models.*;
+import com.chatchain.models.AddStoryRequest;
+import com.chatchain.models.CandidatePhrase;
+import com.chatchain.models.Story;
+import com.chatchain.models.VoteRequest;
 import com.chatchain.repositories.StoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,11 +60,11 @@ class StoryManagementServiceTest
     void vote()
     {
         storyManagementService.getStoryById(TEST_UUID_1).addCandidate(TEST_PHRASE);
-        Vote vote = new Vote();
-        vote.setPhrase(TEST_PHRASE);
-        vote.setVoteType(UPVOTE);
-        vote.setWeight(100);
-        Story story = storyManagementService.vote(TEST_UUID_1, vote);
+        VoteRequest voteRequest = new VoteRequest();
+        voteRequest.setPhrase(TEST_PHRASE);
+        voteRequest.setVoteType(UPVOTE);
+        voteRequest.setWeight(100);
+        Story story = storyManagementService.vote(TEST_UUID_1, voteRequest);
         Optional<CandidatePhrase> candidatePhrase = story.getCandidates().stream().filter(c -> c.getPhrase().equals(TEST_PHRASE)).findFirst();
         assertTrue(candidatePhrase.isPresent());
         assertEquals(101, candidatePhrase.get().getWeight());
@@ -109,11 +113,11 @@ class StoryManagementServiceTest
         String expectedTitle = "Title";
         String expectedCitation = "Citation";
         int expectedPeriod = 100;
-        NewStoryRequest newStoryRequest = new NewStoryRequest();
-        newStoryRequest.setTitle(expectedTitle);
-        newStoryRequest.setCitation(expectedCitation);
-        newStoryRequest.setPeriod(expectedPeriod);
-        Story story = storyManagementService.addStory(newStoryRequest);
+        AddStoryRequest addStoryRequest = new AddStoryRequest();
+        addStoryRequest.setTitle(expectedTitle);
+        addStoryRequest.setCitation(expectedCitation);
+        addStoryRequest.setPeriod(expectedPeriod);
+        Story story = storyManagementService.addStory(addStoryRequest);
 
         assertNotNull(story);
         assertNotNull(story.getId());

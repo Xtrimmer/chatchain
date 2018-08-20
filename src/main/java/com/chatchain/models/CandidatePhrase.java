@@ -27,7 +27,10 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
 
     public CandidatePhrase(String phrase)
     {
-        this(phrase, 1);
+        this.created = Instant.now();
+        this.phrase = phrase;
+        this.cost = calculateCost(phrase);
+        this.positiveVotes += 1;
     }
 
     public void addPositiveVotes(long amount)
@@ -87,12 +90,6 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
     }
 
     @Override
-    public String toString()
-    {
-        return ToStringBuilder.reflectionToString(this);
-    }
-
-    @Override
     public boolean equals(Object obj)
     {
         if (obj == null)
@@ -108,7 +105,13 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
             return false;
         }
         CandidatePhrase rhs = (CandidatePhrase) obj;
-        return EqualsBuilder.reflectionEquals(this, obj, "created", "weight");
+        return EqualsBuilder.reflectionEquals(this, rhs, "created", "weight");
+    }
+
+    @Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString(this);
     }
 
     @Override
@@ -116,6 +119,4 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
     {
         return CANDIDATE_PHRASE_COMPARATOR.compare(this, o);
     }
-
-
 }

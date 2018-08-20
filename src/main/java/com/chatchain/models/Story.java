@@ -1,10 +1,10 @@
 package com.chatchain.models;
 
 import com.chatchain.services.story.weight.StoryWeightService;
-import com.chatchain.shared.DatedWeightedItem;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -31,6 +31,11 @@ public class Story
     private ChronoUnit chronoUnit;
     private Instant updateTime;
 
+    public Story()
+    {
+        this(UUID.randomUUID(), DEFAULT_TITLE, DEFAULT_PERIOD, DEFAULT_CHRONO_UNIT);
+    }
+
     public Story(UUID id, String title, int period, ChronoUnit chronoUnit)
     {
         Objects.requireNonNull(id);
@@ -41,9 +46,20 @@ public class Story
         updateTime = now().plus(period, chronoUnit);
     }
 
-    public Story()
+    @Override
+    public int hashCode()
     {
-        this(UUID.randomUUID(), DEFAULT_TITLE, DEFAULT_PERIOD, DEFAULT_CHRONO_UNIT);
+        return Objects.hash(id);
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Story story = (Story) o;
+        return Objects.equals(id, story.id);
     }
 
     public String getCitation()
@@ -99,21 +115,6 @@ public class Story
     public UUID getId()
     {
         return id;
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Story story = (Story) o;
-        return Objects.equals(id, story.id);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(id);
     }
 
     public List<Phrase> getPhrases()

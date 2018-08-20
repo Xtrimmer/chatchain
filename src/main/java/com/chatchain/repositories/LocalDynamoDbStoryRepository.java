@@ -11,6 +11,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import static com.amazonaws.services.dynamodbv2.model.KeyType.HASH;
+import static com.amazonaws.services.dynamodbv2.model.KeyType.RANGE;
 import static com.chatchain.models.Story.*;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
@@ -26,6 +28,7 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
     private static final String PERIOD = "Period";
     private static final String CHRONO_UNIT = "ChronoUnit";
     private static final String TABLE_NAME = "ChatChain.Stories";
+    private static final String SECONDARY_GLOBAL_INDEX_NAME = "ChatChain.Stories.byValue";
 
     private final AmazonDynamoDB dynamoDB;
 
@@ -159,16 +162,16 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
         {
             CreateTableRequest request = new CreateTableRequest()
                     .withAttributeDefinitions(
-                            new AttributeDefinition("Id", ScalarAttributeType.S),
-                            new AttributeDefinition("TotalValue", ScalarAttributeType.N))
+                            new AttributeDefinition(ID, ScalarAttributeType.S),
+                            new AttributeDefinition(TOTAL_VALUE, ScalarAttributeType.N))
                     .withKeySchema(
-                            new KeySchemaElement("Id", KeyType.HASH))
+                            new KeySchemaElement(ID, HASH))
                     .withGlobalSecondaryIndexes(
                             new GlobalSecondaryIndex()
-                                    .withIndexName("ChatChain.Stories.byValue")
+                                    .withIndexName(SECONDARY_GLOBAL_INDEX_NAME)
                                     .withKeySchema(
-                                            new KeySchemaElement("Id", KeyType.HASH),
-                                            new KeySchemaElement("TotalValue", KeyType.RANGE))
+                                            new KeySchemaElement(ID, HASH),
+                                            new KeySchemaElement(TOTAL_VALUE, RANGE))
                                     .withProvisionedThroughput(
                                             new ProvisionedThroughput(1L, 1L))
                                     .withProjection(new Projection().withProjectionType(ProjectionType.ALL)))
