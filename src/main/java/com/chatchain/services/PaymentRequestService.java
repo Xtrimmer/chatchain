@@ -30,7 +30,7 @@ public class PaymentRequestService
     public interface BtcPayServer
     {
         @RequestLine("POST /invoices")
-        @Headers({"Content-Type: application/json", "Authorization: Basic ZEg3SGtNVVFsMW9JUU9ycmwwUmhrN1liN1prbG9WYlpRUXlacFdoVjdkVQ=="})
+        @Headers("Content-Type: application/json")
         CreateInvoiceResponse createInvoice(Invoice invoice);
     }
 
