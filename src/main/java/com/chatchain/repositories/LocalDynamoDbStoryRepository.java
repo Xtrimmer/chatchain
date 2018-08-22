@@ -27,7 +27,7 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
     private static final String CITATION = "Citation";
     private static final String PERIOD = "Period";
     private static final String CHRONO_UNIT = "ChronoUnit";
-    private static final String TABLE_NAME = "ChatChain.Stories";
+    private static final String TABLE_NAME = "ChatChain.Stories.test";
     private static final String SECONDARY_GLOBAL_INDEX_NAME = "ChatChain.Stories.byValue";
 
     private final AmazonDynamoDB dynamoDB;

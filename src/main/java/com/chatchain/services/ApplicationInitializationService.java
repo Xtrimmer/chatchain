@@ -23,8 +23,6 @@ public class ApplicationInitializationService implements CommandLineRunner
     @Override
     public void run(String... args) throws Exception
     {
-        startEmbeddedDynamoDbServer();
-        storyRepository.createStoryTable();
         storyManagementService.addStories(storyRepository.getAllStories());
     }
 
