@@ -11,10 +11,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PaymentServerConfiguration
 {
-    @Value("${payserver.rootUrl}")
+    @Value("${payment.server.rootUrl}")
     private String payServerRootUrl;
 
-    @Value("${payserver.authentication}")
+    @Value("${payment.server.authentication}")
     private String authHeader;
 
     @Bean

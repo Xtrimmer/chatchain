@@ -1,16 +1,16 @@
 package com.chatchain.services;
 
-import com.chatchain.models.CreateInvoiceResponse;
-import com.chatchain.models.Invoice;
-import com.chatchain.models.InvoiceUrl;
-import com.chatchain.models.PaidRequest;
+import com.chatchain.models.*;
 import feign.Headers;
 import feign.RequestLine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Objects.nonNull;
 
 @Service
 public class PaymentRequestService
@@ -18,6 +18,11 @@ public class PaymentRequestService
     private Map<String, PaidRequest> paidRequestMap = new HashMap<>();
     private StoryManagementService storyManagementService;
     private BtcPayServer btcPayServer;
+
+    @Value("${payment.server.currency}")
+    private String currency;
+    @Value("${payment.server.notificationUrl}")
+    private String notificationUrl;
 
     @Autowired
     public PaymentRequestService(StoryManagementService storyManagementService,
@@ -34,13 +39,13 @@ public class PaymentRequestService
         CreateInvoiceResponse createInvoice(Invoice invoice);
     }
 
-    public InvoiceUrl addRequest(PaidRequest paidRequest)
+    private void processPaidRequest(String id)
     {
-        Invoice invoice = paidRequest.getInvoice(storyManagementService);
-        CreateInvoiceResponse response = btcPayServer.createInvoice(invoice);
-        String invoiceId = (String) response.getData().get("id");
-        paidRequestMap.put(invoiceId, paidRequest);
-        return new InvoiceUrl((String) response.getData().get("url"));
+        PaidRequest paidRequest = paidRequestMap.remove(id);
+        if (nonNull(paidRequest))
+        {
+            paidRequest.processPaidRequest(storyManagementService);
+        }
     }
 
     public void processStatusChange(Invoice invoice)
@@ -79,9 +84,15 @@ public class PaymentRequestService
         }
     }
 
-    private void processPaidRequest(String id)
+    public InvoiceUrl addRequest(PaidRequest paidRequest)
     {
-        PaidRequest paidRequest = paidRequestMap.get(id);
-        paidRequest.processPaidRequest(storyManagementService);
+        PayServerRequest payServerRequest = new PayServerRequest(paidRequest);
+        payServerRequest.setCurrency(currency);
+        payServerRequest.setNotificationUrl(notificationUrl);
+        Invoice invoice = payServerRequest.getInvoice(storyManagementService);
+        CreateInvoiceResponse response = btcPayServer.createInvoice(invoice);
+        String invoiceId = (String) response.getData().get("id");
+        paidRequestMap.put(invoiceId, payServerRequest);
+        return new InvoiceUrl((String) response.getData().get("url"));
     }
 }

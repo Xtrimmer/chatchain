@@ -3,8 +3,8 @@ package com.chatchain.models;
 public class Invoice
 {
 
-    private String currency = "BTC";
-    private String notificationURL = "http://127.0.0.1:8080/api/notification";
+    private String currency;
+    private String notificationURL;
     private String fullNotifications = "true";
     private String id;
     private String status;
