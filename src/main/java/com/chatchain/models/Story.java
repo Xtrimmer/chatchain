@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
@@ -22,8 +23,8 @@ public class Story
 
     private final UUID id;
     private String title;
-    private List<Phrase> phrases = new ArrayList<>();
-    private ConcurrentSkipListSet<CandidatePhrase> candidates = new ConcurrentSkipListSet<>();
+    private List<Phrase> phrases = new CopyOnWriteArrayList<>();
+    private SortedSet<CandidatePhrase> candidates = new ConcurrentSkipListSet<>();
     private String citation = DEFAULT_CITATION;
     private int period;
     private ChronoUnit chronoUnit;
@@ -167,6 +168,11 @@ public class Story
     public Instant getUpdateTime()
     {
         return updateTime;
+    }
+
+    public long getTimeRemaining()
+    {
+        return updateTime.toEpochMilli() - Instant.now().toEpochMilli();
     }
 
     public void setUpdateTime(Instant updateTime)
