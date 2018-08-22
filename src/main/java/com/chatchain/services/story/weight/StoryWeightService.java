@@ -1,12 +1,7 @@
 package com.chatchain.services.story.weight;
 
-import com.chatchain.shared.DatedWeightedItem;
-
-import java.time.Duration;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
 
 public class StoryWeightService
 {
@@ -27,16 +22,21 @@ public class StoryWeightService
 
         Float value;
 
-        if (isBetween(ageInDays, 0, primaryWeightDays)) {
+        if (isBetween(ageInDays, 0, primaryWeightDays))
+        {
             value = entryValue * primaryWeightMultiplier;
-        } else if (isBetween(ageInDays, primaryWeightDays, secondaryWeightDays)) {
+        } else if (isBetween(ageInDays, primaryWeightDays, secondaryWeightDays))
+        {
             value = entryValue * secondaryWeightMultiplier;
-        } else if (isBetween(ageInDays, secondaryWeightDays, tertiaryWeightDays)) {
+        } else if (isBetween(ageInDays, secondaryWeightDays, tertiaryWeightDays))
+        {
             value = entryValue * tertiaryWeightMultiplier;
-        } else if (isBetween(ageInDays, tertiaryWeightDays, quaternaryWeightDays)) {
+        } else if (isBetween(ageInDays, tertiaryWeightDays, quaternaryWeightDays))
+        {
             value = entryValue * quaternaryWeightMultiplier;
-        } else {
-            value= entryValue * finalWeightMultiplier;
+        } else
+        {
+            value = entryValue * finalWeightMultiplier;
         }
 
         return value.longValue();

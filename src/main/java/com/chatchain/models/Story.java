@@ -1,8 +1,6 @@
 package com.chatchain.models;
 
 import com.chatchain.services.story.weight.StoryWeightService;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -62,6 +60,23 @@ public class Story
         return Objects.equals(id, story.id);
     }
 
+    @Override
+    public String toString()
+    {
+        List<String> phrasesList = getPhrases().stream().map(Phrase::getPhrase).collect(Collectors.toList());
+        return String.join(" ", phrasesList);
+    }
+
+    public List<Phrase> getPhrases()
+    {
+        return phrases;
+    }
+
+    public void setPhrases(List<Phrase> phrases)
+    {
+        this.phrases = phrases;
+    }
+
     public String getCitation()
     {
         return citation;
@@ -86,21 +101,26 @@ public class Story
     {
         Long phrasesValue = phrases.stream()
                 .mapToLong(phrase -> StoryWeightService
-                .getWeight(phrase.getTotalEarned(), phrase.getTimestamp()))
+                        .getWeight(phrase.getTotalEarned(), phrase.getTimestamp()))
                 .sum();
 
         Long candidateValue = getCandidates().stream()
                 .mapToLong(candidate -> StoryWeightService
-                .getWeight(candidate.getTotalVoteCount(), candidate.getCreated()))
+                        .getWeight(candidate.getTotalVoteCount(), candidate.getCreated()))
                 .sum();
 
         return phrasesValue + candidateValue;
     }
 
-//    public void setTotalValue(long totalValue)
-//    {
-//        this.totalValue = totalValue;
-//    }
+    public SortedSet<CandidatePhrase> getCandidates()
+    {
+        return new TreeSet<>(candidates);
+    }
+
+    public void setCandidates(Set<CandidatePhrase> candidates)
+    {
+        this.candidates = new ConcurrentSkipListSet<>(candidates);
+    }
 
     public ChronoUnit getChronoUnit()
     {
@@ -115,16 +135,6 @@ public class Story
     public UUID getId()
     {
         return id;
-    }
-
-    public List<Phrase> getPhrases()
-    {
-        return phrases;
-    }
-
-    public void setPhrases(List<Phrase> phrases)
-    {
-        this.phrases = phrases;
     }
 
     public int getPeriod()
@@ -152,13 +162,6 @@ public class Story
         }
         updateTime = updateTime.plus(period, chronoUnit);
         return hasChange;
-    }
-
-    @Override
-    public String toString()
-    {
-        List<String> phrasesList = getPhrases().stream().map(phrase -> phrase.getPhrase()).collect(Collectors.toList());
-        return String.join(" ", phrasesList);
     }
 
     public Instant getUpdateTime()
@@ -189,16 +192,6 @@ public class Story
         updateTime = now().plus(period, chronoUnit);
     }
 
-    public SortedSet<CandidatePhrase> getCandidates()
-    {
-        return new TreeSet<>(candidates);
-    }
-
-    public void setCandidates(Set<CandidatePhrase> candidates)
-    {
-        this.candidates = new ConcurrentSkipListSet<>(candidates);
-    }
-
     public void vote(String phrase, int weight, VoteType voteType)
     {
         Optional<CandidatePhrase> candidateWord = candidates.stream()
@@ -207,16 +200,18 @@ public class Story
 
         candidateWord.ifPresent(votedPhrase ->
         {
-            candidates.remove(votedPhrase);
-            if (voteType == VoteType.UPVOTE)
+            synchronized (this)
             {
-                votedPhrase.addPositiveVotes(weight);
+                candidates.remove(votedPhrase);
+                if (voteType == VoteType.UPVOTE)
+                {
+                    votedPhrase.addPositiveVotes(weight);
+                } else if (voteType == VoteType.DOWNVOTE)
+                {
+                    votedPhrase.addNegativeVotes(weight);
+                }
+                candidates.add(votedPhrase);
             }
-            else if (voteType == VoteType.DOWNVOTE)
-            {
-                votedPhrase.addNegativeVotes(weight);
-            }
-            candidates.add(votedPhrase);
         });
     }
 }
