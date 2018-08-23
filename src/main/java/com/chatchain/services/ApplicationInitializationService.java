@@ -1,7 +1,5 @@
 package com.chatchain.services;
 
-import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
-import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.chatchain.repositories.StoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -24,19 +22,5 @@ public class ApplicationInitializationService implements CommandLineRunner
     public void run(String... args) throws Exception
     {
         storyManagementService.addStories(storyRepository.getAllStories());
-    }
-
-    private void startEmbeddedDynamoDbServer()
-    {
-        try
-        {
-            System.setProperty("sqlite4java.library.path", "native-libs");
-            DynamoDBProxyServer server = ServerRunner.createServerFromCommandLineArgs(
-                    new String[]{"-sharedDb"});
-            server.start();
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
     }
 }

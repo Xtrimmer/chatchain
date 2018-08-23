@@ -107,6 +107,7 @@ public class StoryManagementService
     private void addStory(Story story)
     {
         storyMap.put(story.getId(), story);
+        storyRepository.putStory(story);
         eventCoordinationService.scheduleUpdate(story, update(story));
     }
 }
