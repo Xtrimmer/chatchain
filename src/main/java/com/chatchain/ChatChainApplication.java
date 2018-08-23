@@ -8,6 +8,7 @@ public class ChatChainApplication
 {
     public static void main(String[] args)
     {
+        System.out.println("Starting.");
         SpringApplication.run(ChatChainApplication.class, args);
     }
 }
