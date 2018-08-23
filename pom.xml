@@ -5,11 +5,11 @@
 
     <groupId>com.chatchain</groupId>
     <artifactId>chatchain</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.0</version>
     <packaging>jar</packaging>
 
-    <name>chatchain</name>
-    <description>Demo project for Chat-Chain</description>
+    <name>Satoshi Stories</name>
+    <description>A crowd sourced story-building application.</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -71,6 +71,7 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>DynamoDBLocal</artifactId>
             <version>1.11.119</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
