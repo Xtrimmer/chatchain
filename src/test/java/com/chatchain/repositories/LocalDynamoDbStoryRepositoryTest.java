@@ -109,8 +109,9 @@ class LocalDynamoDbStoryRepositoryTest
 
     private void deleteTable() throws Exception
     {
+        String tableName = (String) ReflectionTestUtils.getField(dynamoDbStoryRepository, "TABLE_NAME");
         DynamoDB dynamoDB = new DynamoDB(amazonDynamoDB);
-        Table table = dynamoDB.getTable("ChatChain.Stories");
+        Table table = dynamoDB.getTable(tableName);
         table.delete();
         table.waitForDelete();
     }
