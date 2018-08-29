@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.chatchain.models.InvoiceUrl.PaymentMethod.LIGHTNING;
 import static java.util.Objects.nonNull;
 
 @Service
@@ -50,36 +51,39 @@ public class PaymentRequestService
 
     public void processStatusChange(Invoice invoice)
     {
+        String invoiceId = invoice.getId();
         switch (invoice.getStatus())
         {
             case "new":
-                System.out.println("New invoice created: " + invoice.getId());
+                System.out.println("New invoice created: " + invoiceId);
                 break;
             case "paid":
-                System.out.println("Invoice paid: " + invoice.getId());
-                processPaidRequest(invoice.getId());
+                System.out.println("Invoice paid: " + invoiceId);
+                processPaidRequest(invoiceId);
                 break;
             case "confirmed":
-                System.out.println("Invoice confirmed: " + invoice.getId());
+                System.out.println("Invoice confirmed: " + invoiceId);
+                processPaidRequest(invoiceId);
                 break;
             case "complete":
-                System.out.println("Invoice complete: " + invoice.getId());
+                System.out.println("Invoice complete: " + invoiceId);
+                processPaidRequest(invoiceId);
                 break;
             case "expired":
-                System.out.println("Invoice expired: " + invoice.getId());
-                paidRequestMap.remove(invoice.getId());
+                System.out.println("Invoice expired: " + invoiceId);
+                paidRequestMap.remove(invoiceId);
                 break;
             case "invalid":
-                System.out.println("Invoice invalid: " + invoice.getId());
+                System.out.println("Invoice invalid: " + invoiceId);
                 break;
             case "false":
-                System.out.println("Invoice false: " + invoice.getId());
+                System.out.println("Invoice false: " + invoiceId);
                 break;
             case "paidPartial":
-                System.out.println("Invoice paidPartial: " + invoice.getId());
+                System.out.println("Invoice paidPartial: " + invoiceId);
                 break;
             case "paidOver":
-                System.out.println("Invoice paidOver: " + invoice.getId());
+                System.out.println("Invoice paidOver: " + invoiceId);
                 break;
         }
     }
@@ -93,6 +97,6 @@ public class PaymentRequestService
         CreateInvoiceResponse response = btcPayServer.createInvoice(invoice);
         String invoiceId = (String) response.getData().get("id");
         paidRequestMap.put(invoiceId, payServerRequest);
-        return new InvoiceUrl((String) response.getData().get("url"));
+        return new InvoiceUrl((String) response.getData().get("url"), LIGHTNING);
     }
 }
