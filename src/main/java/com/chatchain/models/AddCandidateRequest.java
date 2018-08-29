@@ -1,10 +1,12 @@
 package com.chatchain.models;
 
 import com.chatchain.services.StoryManagementService;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.UUID;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 
 public class AddCandidateRequest implements PaidRequest
 {
@@ -28,6 +30,12 @@ public class AddCandidateRequest implements PaidRequest
     public void processPaidRequest(StoryManagementService storyManagementService)
     {
         storyManagementService.addCandidate(storyId, phrase);
+    }
+
+    @Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString(this, SHORT_PREFIX_STYLE);
     }
 
     public String getRedirectUrl()

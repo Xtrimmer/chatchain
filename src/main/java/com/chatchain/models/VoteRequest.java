@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 
 public class VoteRequest implements PaidRequest
 {
@@ -36,7 +37,7 @@ public class VoteRequest implements PaidRequest
     @Override
     public String toString()
     {
-        return ToStringBuilder.reflectionToString(this);
+        return ToStringBuilder.reflectionToString(this, SHORT_PREFIX_STYLE);
     }
 
     public UUID getStoryId()

@@ -1,6 +1,9 @@
 package com.chatchain.models;
 
 import com.chatchain.services.StoryManagementService;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 
 public class AddStoryRequest implements PaidRequest
 {
@@ -24,6 +27,12 @@ public class AddStoryRequest implements PaidRequest
     public void processPaidRequest(StoryManagementService storyManagementService)
     {
         storyManagementService.addStory(this);
+    }
+
+    @Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString(this, SHORT_PREFIX_STYLE);
     }
 
     public String getRedirectUrl()

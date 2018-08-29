@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * <p>
  * $ mvn test-compile      <-- Run this command at least once before running unit tests
  */
-class LocalDynamoDbStoryRepositoryTest
+class DynamoDbStoryRepositoryTest
 {
     private static DynamoDBProxyServer server;
     private static AmazonDynamoDB amazonDynamoDB;
@@ -62,7 +62,7 @@ class LocalDynamoDbStoryRepositoryTest
     @BeforeEach
     void beforeEach()
     {
-        dynamoDbStoryRepository = new LocalDynamoDbStoryRepository(amazonDynamoDB);
+        dynamoDbStoryRepository = new DynamoDbStoryRepository(amazonDynamoDB);
         dynamoDbStoryRepository.createStoryTable();
     }
 

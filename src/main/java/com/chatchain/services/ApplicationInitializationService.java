@@ -21,6 +21,7 @@ public class ApplicationInitializationService implements CommandLineRunner
     @Override
     public void run(String... args) throws Exception
     {
+        storyRepository.createStoryTable();
         storyManagementService.addStories(storyRepository.getAllStories());
     }
 }

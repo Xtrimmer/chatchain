@@ -4,6 +4,8 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.*;
 import com.chatchain.models.Phrase;
 import com.chatchain.models.Story;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -18,8 +20,10 @@ import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 
 @Repository
-public class LocalDynamoDbStoryRepository implements StoryRepository
+public class DynamoDbStoryRepository implements StoryRepository
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDbStoryRepository.class);
+
     private static final String ID = "Id";
     private static final String TOTAL_VALUE = "TotalValue";
     private static final String TITLE = "Title";
@@ -33,7 +37,7 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
     private final AmazonDynamoDB dynamoDB;
 
     @Autowired
-    public LocalDynamoDbStoryRepository(AmazonDynamoDB dynamoDB)
+    public DynamoDbStoryRepository(AmazonDynamoDB dynamoDB)
     {
         this.dynamoDB = dynamoDB;
     }
@@ -66,9 +70,21 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
         try
         {
             dynamoDB.putItem(request);
-        } catch (Exception e)
+        } catch (ConditionalCheckFailedException e)
         {
-            e.printStackTrace();
+            LOGGER.error("A condition specified in the operation could not be evaluated.", e);
+        } catch (ProvisionedThroughputExceededException e)
+        {
+            LOGGER.error("Your request rate is too high.", e);
+        } catch (ResourceNotFoundException e)
+        {
+            LOGGER.error("The operation tried to access a nonexistent table or index.", e);
+        } catch (ItemCollectionSizeLimitExceededException e)
+        {
+            LOGGER.error("An item collection is too large.", e);
+        } catch (InternalServerErrorException e)
+        {
+            LOGGER.error("An error occurred on the server side.", e);
         }
 
         return true;
@@ -93,11 +109,17 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
                 return mapStory(returnedItem);
             } else
             {
-                System.out.format("No item found with the key %s!%n", id);
+                LOGGER.info("No story found with ID " + id.toString());
             }
-        } catch (Exception e)
+        } catch (ProvisionedThroughputExceededException e)
         {
-            e.printStackTrace();
+            LOGGER.error("Your request rate is too high", e);
+        } catch (ResourceNotFoundException e)
+        {
+            LOGGER.error("The operation tried to access a nonexistent table or index.", e);
+        } catch (InternalServerErrorException e)
+        {
+            LOGGER.error("An error occurred on the server side.", e);
         }
         return null;
     }
@@ -109,7 +131,6 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
         ChronoUnit chronoUnit = returnedItem.containsKey(CHRONO_UNIT) ? ChronoUnit.valueOf(returnedItem.get(CHRONO_UNIT).getS()) : DEFAULT_CHRONO_UNIT;
         UUID id = UUID.fromString(returnedItem.get(ID).getS());
         Story story = new Story(id, title, period, chronoUnit);
-//        story.setTotalValue(Long.valueOf(returnedItem.get(TOTAL_VALUE).getN()));
         if (returnedItem.containsKey(PHRASES))
         {
             if (returnedItem.containsKey(PHRASES))
@@ -147,9 +168,15 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
             stories = dynamoDB.scan(scanRequest).getItems().stream()
                     .map(this::mapStory)
                     .collect(toList());
-        } catch (Exception e)
+        } catch (ProvisionedThroughputExceededException e)
         {
-            e.printStackTrace();
+            LOGGER.error("Your request rate is too high", e);
+        } catch (ResourceNotFoundException e)
+        {
+            LOGGER.error("The operation tried to access a nonexistent table or index.", e);
+        } catch (InternalServerErrorException e)
+        {
+            LOGGER.error("An error occurred on the server side.", e);
         }
         return isNull(stories) ? new ArrayList<>() : stories;
     }
@@ -180,7 +207,19 @@ public class LocalDynamoDbStoryRepository implements StoryRepository
                             new ProvisionedThroughput(1L, 1L))
                     .withTableName(TABLE_NAME);
 
-            dynamoDB.createTable(request);
+            try
+            {
+                dynamoDB.createTable(request);
+            } catch (ResourceInUseException e)
+            {
+                LOGGER.error("The operation conflicts with the resource's availability. For example, you attempted to recreate an existing table, or tried to delete a table currently in the CREATING state.", e);
+            } catch (LimitExceededException e)
+            {
+                LOGGER.error("There is no limit to the number of daily on-demand backups that can be taken.", e);
+            } catch (InternalServerErrorException e)
+            {
+                LOGGER.error("An error occurred on the server side.", e);
+            }
         }
     }
 }
