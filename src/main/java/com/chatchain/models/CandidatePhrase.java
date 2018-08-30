@@ -10,27 +10,24 @@ import java.util.List;
 
 public class CandidatePhrase implements Comparable<CandidatePhrase>
 {
-    public static final Comparator<CandidatePhrase> CANDIDATE_PHRASE_COMPARATOR = Comparator.comparing(CandidatePhrase::getWeight).reversed().thenComparing(CandidatePhrase::getCreated);
+    public static final Comparator<CandidatePhrase> COMPARATOR = Comparator.comparing(CandidatePhrase::getWeight).reversed().thenComparing(CandidatePhrase::getCreated);
     private final String phrase;
     private final Instant created;
     private final long cost;
     private long positiveVotes;
     private long negativeVotes;
 
+    public CandidatePhrase(String phrase)
+    {
+        this(phrase, 1);
+    }
+
     public CandidatePhrase(String phrase, int weight)
     {
         this.created = Instant.now();
         this.phrase = phrase;
         this.cost = calculateCost(phrase);
-        this.positiveVotes += weight;
-    }
-
-    public CandidatePhrase(String phrase)
-    {
-        this.created = Instant.now();
-        this.phrase = phrase;
-        this.cost = calculateCost(phrase);
-        this.positiveVotes += 1;
+        this.positiveVotes = weight;
     }
 
     public void addPositiveVotes(long amount)
@@ -70,7 +67,7 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
 
     public static long calculateCost(String phrase)
     {
-        List<Double> values = new ArrayList<>();
+        List<Double> values = new ArrayList<>(phrase.length());
 
         values.add(0.0);
         values.add(0.02);
@@ -117,6 +114,6 @@ public class CandidatePhrase implements Comparable<CandidatePhrase>
     @Override
     public int compareTo(CandidatePhrase o)
     {
-        return CANDIDATE_PHRASE_COMPARATOR.compare(this, o);
+        return COMPARATOR.compare(this, o);
     }
 }
