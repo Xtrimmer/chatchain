@@ -37,9 +37,24 @@ public class PayServerRequest implements PaidRequest
         return ToStringBuilder.reflectionToString(this, SHORT_PREFIX_STYLE);
     }
 
+    public PaidRequest getPaidRequest()
+    {
+        return paidRequest;
+    }
+
+    public String getCurrency()
+    {
+        return currency;
+    }
+
     public void setCurrency(String currency)
     {
         this.currency = currency;
+    }
+
+    public String getNotificationUrl()
+    {
+        return notificationUrl;
     }
 
     public void setNotificationUrl(String notificationUrl)
