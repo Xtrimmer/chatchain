@@ -6,3 +6,4 @@
 /target/
 native-libs/
 /src/main/resources/application.properties
+/logs/
