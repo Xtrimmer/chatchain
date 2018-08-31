@@ -1,14 +1,15 @@
 package com.chatchain.services;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 public class StoryWeightService
 {
     //TODO: Move values to config
     private static final int PRIMARY_WEIGHT_DAYS = 2;
     private static final float PRIMARY_WEIGHT_MULTIPLIER = 1.0f;
-    private static final int SECONDARY_WEIGHT_DAYS = 2;
+    private static final int SECONDARY_WEIGHT_DAYS = 5;
     private static final float SECONDARY_WEIGHT_MULTIPLIER = 0.8f;
     private static final int TERTIARY_WEIGHT_DAYS = 10;
     private static final float TERTIARY_WEIGHT_MULTIPLIER = 0.65f;
@@ -22,7 +23,7 @@ public class StoryWeightService
 
     public static long getWeight(long entryValue, Instant instant)
     {
-        Long ageInDays = ChronoUnit.DAYS.between(instant, Instant.now());
+        long ageInDays = DAYS.between(instant, Instant.now());
 
         Float value;
 
@@ -46,13 +47,9 @@ public class StoryWeightService
         return value.longValue();
     }
 
-    public static boolean isBetween(long value, long start, long end)
+    private static boolean isBetween(long value, long start, long end)
     {
-        if ((value >= start) && (value < end))
-        {
-            return true;
-        }
-        return false;
+        return (value >= start) && (value < end);
     }
 }
 
