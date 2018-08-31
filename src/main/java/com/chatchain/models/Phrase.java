@@ -1,6 +1,10 @@
 package com.chatchain.models;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import java.time.Instant;
+
+import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 
 public class Phrase
 {
@@ -13,6 +17,12 @@ public class Phrase
         this.phrase = phrase;
         this.timestamp = timestamp;
         this.totalEarned = totalEarned;
+    }
+
+    @Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString(this, SHORT_PREFIX_STYLE);
     }
 
     public String getPhrase()
@@ -43,15 +53,5 @@ public class Phrase
     public void setTotalEarned(long totalEarned)
     {
         this.totalEarned = totalEarned;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Phrase{" +
-                "phrase='" + phrase + '\'' +
-                ", timestamp=" + timestamp +
-                ", totalEarned=" + totalEarned +
-                '}';
     }
 }
