@@ -21,7 +21,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class StoryTests
+public class StoryTest
 {
     private Story testStory = new Story();
 
@@ -91,18 +91,11 @@ public class StoryTests
     @Test
     void getTotalValueTest()
     {
-        long expectedTotalValue = 0L;
-//        testStory.setTotalValue(expectedTotalValue);
+        testStory.setPhrases(List.of(new Phrase("Test", Instant.now(), 1)));
+        testStory.setCandidates(Set.of(new CandidatePhrase("Test", 1)));
+        long expectedTotalValue = 2L;
         assertEquals(expectedTotalValue, testStory.getTotalValue());
     }
-
-//    @Test
-//    void setTotalValueTest()
-//    {
-//        long expectedTotalValue = 1L;
-////        testStory.setTotalValue(expectedTotalValue);
-//        assertEquals(expectedTotalValue, testStory.getTotalValue());
-//    }
 
     @Test
     void getChronoUnitTest()
@@ -254,10 +247,19 @@ public class StoryTests
         assertThat(testStory.getCandidates(), hasSize(0));
         assertEquals(0, testStory.getTotalValue());
 
-        String expectedPhrase1 = "bla bla bla";
+        CandidatePhrase actualCandidatePhrase = testStory.addCandidate(null);
+        assertNull(actualCandidatePhrase);
+        assertThat(testStory.getCandidates(), hasSize(0));
+
+        actualCandidatePhrase = testStory.addCandidate("");
+        assertNull(actualCandidatePhrase);
+        assertThat(testStory.getCandidates(), hasSize(0));
+
+        String expectedPhrase1 = "Test phrase 1";
         CandidatePhrase candidatePhrase1 = new CandidatePhrase(expectedPhrase1, 1000);
-        testStory.addCandidate(candidatePhrase1.getPhrase());
-        testStory.vote("bla bla bla", 1000, VoteType.UPVOTE);
+        actualCandidatePhrase = testStory.addCandidate(candidatePhrase1.getPhrase());
+        testStory.vote("Test phrase 1", 1000, VoteType.UPVOTE);
+        assertNotNull(actualCandidatePhrase);
         assertThat(testStory.getCandidates(), hasSize(1));
         assertEquals(1001, testStory.getTotalValue());
         assertEquals(expectedPhrase1, candidatePhrase1.getPhrase());
@@ -331,5 +333,12 @@ public class StoryTests
         actualOrder = testStory.getCandidates().stream().map(CandidatePhrase::getPhrase).collect(toList());
         assertEquals(expectedOrder, actualOrder);
         assertEquals(-2, candidate4.getWeight());
+    }
+
+    @Test
+    void getTimeRemainingTest()
+    {
+        testStory.setUpdateTime(Instant.now().plus(60, MINUTES));
+        assertTrue(testStory.getTimeRemaining() > 0);
     }
 }
