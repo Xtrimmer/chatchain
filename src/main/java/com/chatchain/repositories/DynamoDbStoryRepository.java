@@ -34,6 +34,14 @@ public class DynamoDbStoryRepository implements StoryRepository
     private static final String TABLE_NAME = "ChatChain.Stories.test";
     private static final String SECONDARY_GLOBAL_INDEX_NAME = "ChatChain.Stories.byValue";
 
+    private static final String RESOURCE_NOT_FOUND_MSG = "The operation tried to access a nonexistent table or index.";
+    private static final String CONDITION_CHECK_FAILED_MSG = "A condition specified in the operation could not be evaluated.";
+    private static final String PROVISIONED_THROUGHPUT_EXCEEDED_MSG = "Your request rate is too high.";
+    private static final String ITEM_COLLECTION_SIZE_LIMIT_MSG = "An item collection is too large.";
+    private static final String INTERNAL_SERVER_ERROR_MSG = "An error occurred on the server side.";
+    private static final String RESOURCE_IN_USE_MSG = "The operation conflicts with the resource's availability. For example, you attempted to recreate an existing table, or tried to delete a table currently in the CREATING state.";
+    private static final String LIMIT_EXCEEDED_MSG = "There is no limit to the number of daily on-demand backups that can be taken.";
+
     private final AmazonDynamoDB dynamoDB;
 
     @Autowired
@@ -72,19 +80,19 @@ public class DynamoDbStoryRepository implements StoryRepository
             dynamoDB.putItem(request);
         } catch (ConditionalCheckFailedException e)
         {
-            LOGGER.error("A condition specified in the operation could not be evaluated.", e);
+            LOGGER.error(CONDITION_CHECK_FAILED_MSG, e);
         } catch (ProvisionedThroughputExceededException e)
         {
-            LOGGER.error("Your request rate is too high.", e);
+            LOGGER.error(PROVISIONED_THROUGHPUT_EXCEEDED_MSG, e);
         } catch (ResourceNotFoundException e)
         {
-            LOGGER.error("The operation tried to access a nonexistent table or index.", e);
+            LOGGER.error(RESOURCE_NOT_FOUND_MSG, e);
         } catch (ItemCollectionSizeLimitExceededException e)
         {
-            LOGGER.error("An item collection is too large.", e);
+            LOGGER.error(ITEM_COLLECTION_SIZE_LIMIT_MSG, e);
         } catch (InternalServerErrorException e)
         {
-            LOGGER.error("An error occurred on the server side.", e);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
         }
 
         return true;
@@ -109,17 +117,17 @@ public class DynamoDbStoryRepository implements StoryRepository
                 return mapStory(returnedItem);
             } else
             {
-                LOGGER.info("No story found with ID " + id.toString());
+                LOGGER.info("No story found with ID {}", id.toString());
             }
         } catch (ProvisionedThroughputExceededException e)
         {
-            LOGGER.error("Your request rate is too high", e);
+            LOGGER.error(PROVISIONED_THROUGHPUT_EXCEEDED_MSG, e);
         } catch (ResourceNotFoundException e)
         {
-            LOGGER.error("The operation tried to access a nonexistent table or index.", e);
+            LOGGER.error(RESOURCE_NOT_FOUND_MSG, e);
         } catch (InternalServerErrorException e)
         {
-            LOGGER.error("An error occurred on the server side.", e);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
         }
         return null;
     }
@@ -133,20 +141,17 @@ public class DynamoDbStoryRepository implements StoryRepository
         Story story = new Story(id, title, period, chronoUnit);
         if (returnedItem.containsKey(PHRASES))
         {
-            if (returnedItem.containsKey(PHRASES))
-            {
-                story.setPhrases(
-                        returnedItem.get(PHRASES).getL().stream()
-                                .map(AttributeValue::getM)
-                                .filter(Objects::nonNull)
-                                .map(map -> new Phrase(
-                                        map.get("phrase").getS(),
-                                        Instant.parse(map.get("timestamp").getS()),
-                                        Long.valueOf(map.get("totalEarned").getN())
-                                ))
-                                .collect(toList())
-                );
-            }
+            story.setPhrases(
+                    returnedItem.get(PHRASES).getL().stream()
+                            .map(AttributeValue::getM)
+                            .filter(Objects::nonNull)
+                            .map(map -> new Phrase(
+                                    map.get("phrase").getS(),
+                                    Instant.parse(map.get("timestamp").getS()),
+                                    Long.valueOf(map.get("totalEarned").getN())
+                            ))
+                            .collect(toList())
+            );
         }
         if (returnedItem.containsKey(CITATION))
         {
@@ -170,13 +175,13 @@ public class DynamoDbStoryRepository implements StoryRepository
                     .collect(toList());
         } catch (ProvisionedThroughputExceededException e)
         {
-            LOGGER.error("Your request rate is too high", e);
+            LOGGER.error(PROVISIONED_THROUGHPUT_EXCEEDED_MSG, e);
         } catch (ResourceNotFoundException e)
         {
-            LOGGER.error("The operation tried to access a nonexistent table or index.", e);
+            LOGGER.error(RESOURCE_NOT_FOUND_MSG, e);
         } catch (InternalServerErrorException e)
         {
-            LOGGER.error("An error occurred on the server side.", e);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
         }
         return isNull(stories) ? new ArrayList<>() : stories;
     }
@@ -212,13 +217,13 @@ public class DynamoDbStoryRepository implements StoryRepository
                 dynamoDB.createTable(request);
             } catch (ResourceInUseException e)
             {
-                LOGGER.error("The operation conflicts with the resource's availability. For example, you attempted to recreate an existing table, or tried to delete a table currently in the CREATING state.", e);
+                LOGGER.error(RESOURCE_IN_USE_MSG, e);
             } catch (LimitExceededException e)
             {
-                LOGGER.error("There is no limit to the number of daily on-demand backups that can be taken.", e);
+                LOGGER.error(LIMIT_EXCEEDED_MSG, e);
             } catch (InternalServerErrorException e)
             {
-                LOGGER.error("An error occurred on the server side.", e);
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             }
         }
     }
