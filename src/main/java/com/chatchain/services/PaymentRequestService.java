@@ -27,6 +27,7 @@ public class PaymentRequestService
     private String currency;
     @Value("${payment.server.notificationUrl}")
     private String notificationUrl;
+
     @Autowired
     public PaymentRequestService(StoryManagementService storyManagementService,
                                  BtcPayServer btcPayServer)
@@ -53,36 +54,38 @@ public class PaymentRequestService
         switch (invoice.getStatus())
         {
             case "new":
-                LOGGER.info("New invoice created: " + invoiceId);
+                LOGGER.info("New invoice created: {}", invoiceId);
                 break;
             case "paid":
-                LOGGER.info("Invoice paid: " + invoiceId);
+                LOGGER.info("Invoice paid: {}", invoiceId);
                 processPaidRequest(invoiceId);
                 break;
             case "confirmed":
-                LOGGER.info("Invoice confirmed: " + invoiceId);
+                LOGGER.info("Invoice confirmed: {}", invoiceId);
                 processPaidRequest(invoiceId);
                 break;
             case "complete":
-                LOGGER.info("Invoice complete: " + invoiceId);
+                LOGGER.info("Invoice complete: {}", invoiceId);
                 processPaidRequest(invoiceId);
                 break;
             case "expired":
-                LOGGER.info("Invoice expired: " + invoiceId);
+                LOGGER.info("Invoice expired: {}", invoiceId);
                 paidRequestMap.remove(invoiceId);
                 break;
             case "invalid":
-                LOGGER.info("Invoice invalid: " + invoiceId);
+                LOGGER.info("Invoice invalid: {}", invoiceId);
                 break;
             case "false":
-                LOGGER.info("Invoice false: " + invoiceId);
+                LOGGER.info("Invoice false: {}", invoiceId);
                 break;
             case "paidPartial":
-                LOGGER.info("Invoice paidPartial: " + invoiceId);
+                LOGGER.info("Invoice paidPartial: {}", invoiceId);
                 break;
             case "paidOver":
-                LOGGER.info("Invoice paidOver: " + invoiceId);
+                LOGGER.info("Invoice paidOver: {}", invoiceId);
                 break;
+            default:
+                LOGGER.info("Unknown invoice status received.");
         }
     }
 
