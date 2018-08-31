@@ -2,12 +2,12 @@ package com.chatchain.models;
 
 public class InvoiceUrl
 {
-    private String invoiceUrl;
+    private String url;
     private PaymentMethod defaultPaymentMethod;
 
-    public InvoiceUrl(String invoiceUrl, PaymentMethod defaultPaymentMethod)
+    public InvoiceUrl(String url, PaymentMethod defaultPaymentMethod)
     {
-        this.invoiceUrl = invoiceUrl;
+        this.url = url;
         this.defaultPaymentMethod = defaultPaymentMethod;
     }
 
@@ -30,8 +30,8 @@ public class InvoiceUrl
         }
     }
 
-    public String getInvoiceUrl()
+    public String getUrl()
     {
-        return invoiceUrl + "&paymentMethodId=" + defaultPaymentMethod;
+        return url + "&paymentMethodId=" + defaultPaymentMethod;
     }
 }
