@@ -15,8 +15,13 @@ import java.util.Map;
 @CrossOrigin
 public class DebugController
 {
+    private final PaymentRequestService paymentRequestService;
+
     @Autowired
-    PaymentRequestService paymentRequestService;
+    public DebugController(PaymentRequestService paymentRequestService)
+    {
+        this.paymentRequestService = paymentRequestService;
+    }
 
     @GetMapping("/memory")
     public Map<String, Long> getMemoryInfo()
