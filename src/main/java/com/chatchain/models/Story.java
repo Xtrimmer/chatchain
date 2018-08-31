@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+import static com.chatchain.models.VoteType.DOWNVOTE;
+import static com.chatchain.models.VoteType.UPVOTE;
 import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -209,10 +211,10 @@ public class Story
             synchronized (this)
             {
                 candidates.remove(votedPhrase);
-                if (voteType == VoteType.UPVOTE)
+                if (voteType == UPVOTE)
                 {
                     votedPhrase.addPositiveVotes(weight);
-                } else if (voteType == VoteType.DOWNVOTE)
+                } else if (voteType == DOWNVOTE)
                 {
                     votedPhrase.addNegativeVotes(weight);
                 }
