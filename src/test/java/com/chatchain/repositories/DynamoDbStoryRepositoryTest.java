@@ -9,18 +9,19 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
+import com.chatchain.models.Phrase;
 import com.chatchain.models.Story;
 import org.junit.jupiter.api.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 import static com.chatchain.models.Story.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * In order to successfully run the test, it’s mandatory to have all the SQLite4Java libraries in the folder defined
@@ -35,6 +36,7 @@ class DynamoDbStoryRepositoryTest
     private static AmazonDynamoDB amazonDynamoDB;
     private UUID testUuid1 = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private UUID testUuid2 = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private UUID testUuid3 = UUID.fromString("22222222-2222-2222-2222-222222222222");
     private Story testStory1 = new Story(testUuid1, DEFAULT_TITLE, DEFAULT_PERIOD, DEFAULT_CHRONO_UNIT);
     private Story testStory2 = new Story(testUuid2, DEFAULT_TITLE, DEFAULT_PERIOD, DEFAULT_CHRONO_UNIT);
     private StoryRepository dynamoDbStoryRepository;
@@ -64,6 +66,13 @@ class DynamoDbStoryRepositoryTest
     {
         dynamoDbStoryRepository = new DynamoDbStoryRepository(amazonDynamoDB);
         dynamoDbStoryRepository.createStoryTable();
+        List<Phrase> phrases = List.of(
+                new Phrase("test phrase 1", Instant.ofEpochMilli(1000), 1),
+                new Phrase("test phrase 2", Instant.ofEpochMilli(2000), 2),
+                new Phrase("test phrase 3", Instant.ofEpochMilli(3000), 3)
+        );
+        testStory1.setPhrases(phrases);
+        testStory2.setPhrases(phrases);
     }
 
     @AfterEach
@@ -86,6 +95,9 @@ class DynamoDbStoryRepositoryTest
         dynamoDbStoryRepository.putStory(testStory2);
         Story actualStory = dynamoDbStoryRepository.getStoryById(testUuid2);
         assertEquals(testStory2, actualStory);
+
+        actualStory = dynamoDbStoryRepository.getStoryById(testUuid3);
+        assertNull(actualStory);
     }
 
     @Test
