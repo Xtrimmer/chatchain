@@ -1,6 +1,6 @@
 package com.chatchain.models;
 
-import com.chatchain.services.story.weight.StoryWeightService;
+import com.chatchain.services.StoryWeightService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
